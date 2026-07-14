@@ -1,0 +1,774 @@
+/* ==========================================================================
+   IRR — SEC Qualified Buyer Inter-Registrar Registry System
+   Design tokens: institutional, documentary, seal-and-ledger aesthetic.
+   ========================================================================== */
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+:root {
+  /* --- Brand green (fixed by brief) --- */
+  --primary-color: rgb(1, 71, 47);
+  --primary-color-rgb: 1, 71, 47;
+  --primary-dark: #012a1c;
+  --primary-mid: #0b5c3d;
+  --primary-tint-10: rgba(1, 71, 47, 0.06);
+  --primary-tint-20: rgba(1, 71, 47, 0.12);
+
+  /* --- Seal gold: the accreditation / certification accent --- */
+  --seal-gold: #b8862e;
+  --seal-gold-dark: #8f6a22;
+  --seal-gold-tint: rgba(184, 134, 46, 0.12);
+
+  /* --- Ledger neutrals --- */
+  --ink: #12241c;
+  --ink-soft: #3f5148;
+  --ink-faint: #6f7f77;
+  --canvas: #f3f5f2;
+  --surface: #ffffff;
+  --surface-sunken: #eef1ee;
+  --border: #dde3de;
+  --border-strong: #c3ccc5;
+
+  /* --- Status --- */
+  --status-approved: #0b5c3d;
+  --status-pending: #b8862e;
+  --status-rejected: #9c3b3b;
+  --status-review: #2e5c8f;
+
+  /* --- Type --- */
+  --font-display: "Source Serif 4", Georgia, serif;
+  --font-body: "Poppins", sans-serif;
+  --font-mono: "Poppins", sans-serif;
+
+  /* --- Shape --- */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --shadow-card:
+    0 1px 2px rgba(18, 36, 28, 0.06), 0 1px 8px rgba(18, 36, 28, 0.04);
+  --shadow-raised: 0 4px 16px rgba(18, 36, 28, 0.1);
+
+  --sidebar-width: 264px;
+  --topbar-height: 68px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4,
+.font-display {
+  font-family: var(--font-display);
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.text-mono {
+  font-family: var(--font-mono);
+  letter-spacing: -0.01em;
+}
+
+a {
+  color: var(--primary-mid);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--primary-dark);
+}
+
+/* Focus visibility (kept even though rest of the app is dense/data-heavy) */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--primary-mid);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   App shell
+   ========================================================================== */
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* --- Sidebar --- */
+.irr-sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  background: var(--primary-dark);
+  background-image: linear-gradient(
+    180deg,
+    var(--primary-color) 0%,
+    var(--primary-dark) 62%
+  );
+  color: #eaf1ec;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 40;
+  transition: transform 0.2s ease;
+}
+
+.irr-sidebar.is-collapsed {
+  transform: translateX(-100%);
+}
+
+.irr-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 22px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.irr-brand-seal {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1.5px solid var(--seal-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+.irr-brand-seal::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgba(184, 134, 46, 0.55);
+  border-radius: 50%;
+}
+.irr-brand-seal svg {
+  width: 16px;
+  height: 16px;
+}
+
+.irr-brand-text .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--seal-gold);
+  text-transform: uppercase;
+  display: block;
+}
+.irr-brand-text .name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.25;
+}
+
+.irr-nav {
+  padding: 18px 12px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.irr-nav-section-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(234, 241, 236, 0.45);
+  padding: 14px 12px 6px;
+}
+
+.irr-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  color: rgba(234, 241, 236, 0.82);
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 2px;
+  border-left: 2px solid transparent;
+}
+.irr-nav-link svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+.irr-nav-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  text-decoration: none;
+}
+.irr-nav-link.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-left: 2px solid var(--seal-gold);
+}
+
+.irr-sidebar-footer {
+  padding: 14px 22px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: rgba(234, 241, 236, 0.45);
+  line-height: 1.6;
+}
+
+/* --- Main column --- */
+.irr-main {
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.2s ease;
+}
+.irr-main.is-expanded {
+  margin-left: 0;
+}
+
+/* --- Topbar --- */
+.irr-topbar {
+  height: var(--topbar-height);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.irr-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  width: 340px;
+  max-width: 40vw;
+}
+.irr-search input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 13.5px;
+  width: 100%;
+  color: var(--ink);
+}
+.irr-search svg {
+  width: 15px;
+  height: 15px;
+  color: var(--ink-faint);
+  flex-shrink: 0;
+}
+
+.irr-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.irr-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--ink-soft);
+  position: relative;
+}
+.irr-icon-btn:hover {
+  background: var(--surface-sunken);
+}
+.irr-icon-btn svg {
+  width: 18px;
+  height: 18px;
+}
+.irr-icon-btn .dot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--seal-gold);
+  border: 1.5px solid var(--surface);
+}
+
+.irr-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 14px;
+  border-left: 1px solid var(--border);
+}
+.irr-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--primary-tint-20);
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+}
+.irr-profile-text {
+  line-height: 1.25;
+}
+.irr-profile-text .name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.irr-profile-text .role {
+  font-size: 11px;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+}
+
+/* --- Content --- */
+.irr-content {
+  padding: 26px 28px 60px;
+}
+
+.irr-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.irr-page-header .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--primary-mid);
+  margin-bottom: 4px;
+  display: block;
+}
+.irr-page-header h1 {
+  font-size: 24px;
+  margin: 0;
+  font-weight: 600;
+}
+.irr-page-header p {
+  color: var(--ink-faint);
+  font-size: 13.5px;
+  margin: 4px 0 0;
+}
+
+/* ==========================================================================
+   Components
+   ========================================================================== */
+
+.irr-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.irr-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.irr-card-header h2 {
+  font-size: 14.5px;
+  font-weight: 600;
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--ink);
+}
+.irr-card-header .subtitle {
+  font-size: 12px;
+  color: var(--ink-faint);
+  margin-top: 2px;
+}
+.irr-card-body {
+  padding: 18px 20px;
+}
+
+/* --- KPI stat card --- */
+.irr-stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+}
+.irr-stat-card .stat-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-tint-10);
+  color: var(--primary-color);
+  margin-bottom: 14px;
+}
+.irr-stat-card .stat-icon svg {
+  width: 17px;
+  height: 17px;
+}
+.irr-stat-card .stat-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 6px;
+}
+.irr-stat-card .stat-value {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1;
+}
+.irr-stat-card .stat-delta {
+  font-size: 12px;
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+.irr-stat-card .stat-delta.up {
+  color: var(--status-approved);
+}
+.irr-stat-card .stat-delta.down {
+  color: var(--status-rejected);
+}
+.irr-stat-card .stat-delta svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* --- Seal / status badges --- */
+.irr-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.irr-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.irr-badge.approved {
+  background: rgba(11, 92, 61, 0.1);
+  color: var(--status-approved);
+}
+.irr-badge.pending {
+  background: rgba(184, 134, 46, 0.13);
+  color: var(--status-pending);
+}
+.irr-badge.rejected {
+  background: rgba(156, 59, 59, 0.1);
+  color: var(--status-rejected);
+}
+.irr-badge.review {
+  background: rgba(46, 92, 143, 0.1);
+  color: var(--status-review);
+}
+
+/* Certification seal — the signature element, used on verified qualified-buyer rows */
+.irr-seal-mark {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.3px solid var(--seal-gold);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+  color: var(--seal-gold);
+}
+.irr-seal-mark::after {
+  content: "";
+  position: absolute;
+  inset: 2.5px;
+  border: 1px dashed rgba(184, 134, 46, 0.5);
+  border-radius: 50%;
+}
+.irr-seal-mark svg {
+  width: 11px;
+  height: 11px;
+}
+.irr-seal-mark.unverified {
+  border-style: dashed;
+  border-color: var(--border-strong);
+  color: var(--ink-faint);
+}
+.irr-seal-mark.unverified::after {
+  border-color: var(--border-strong);
+}
+
+/* --- Table --- */
+.irr-table-wrap {
+  overflow-x: auto;
+}
+table.irr-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+table.irr-table thead th {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 500;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+table.irr-table tbody td {
+  padding: 13px 20px;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink);
+  vertical-align: middle;
+}
+table.irr-table tbody tr:last-child td {
+  border-bottom: none;
+}
+table.irr-table tbody tr:hover {
+  background: var(--surface-sunken);
+}
+.irr-table-id {
+  font-family: var(--font-mono);
+  color: var(--ink-soft);
+  font-size: 12.5px;
+}
+
+.irr-cell-entity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.irr-cell-entity .initials {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--primary-tint-10);
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.irr-cell-entity .meta .primary {
+  font-weight: 600;
+  font-size: 13.5px;
+}
+.irr-cell-entity .meta .secondary {
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+/* --- Buttons --- */
+.btn-irr-primary {
+  background: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  color: #fff;
+  font-weight: 600;
+  font-size: 13.5px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+}
+.btn-irr-primary:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+  color: #fff;
+}
+
+.btn-irr-outline {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-size: 13.5px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+}
+.btn-irr-outline:hover {
+  background: var(--surface-sunken);
+  border-color: var(--ink-faint);
+}
+
+/* --- Filter pills --- */
+.irr-filter-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.irr-pill {
+  padding: 6px 13px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: var(--surface);
+}
+.irr-pill.active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #fff;
+}
+
+/* --- Form (Settings) --- */
+.irr-form-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+  display: block;
+}
+.irr-form-control {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 13.5px;
+  width: 100%;
+  color: var(--ink);
+  background: var(--surface);
+}
+.irr-form-control:focus {
+  outline: none;
+  border-color: var(--primary-mid);
+  box-shadow: 0 0 0 3px var(--primary-tint-10);
+}
+
+/* --- Audit / activity list --- */
+.irr-activity-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.irr-activity-item:last-child {
+  border-bottom: none;
+}
+.irr-activity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 6px;
+  flex-shrink: 0;
+  background: var(--primary-color);
+}
+.irr-activity-text {
+  font-size: 13px;
+  color: var(--ink);
+}
+.irr-activity-time {
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  margin-top: 2px;
+}
+
+/* --- Compliance score ring --- */
+.irr-ring-wrap {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.irr-ring-value {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 600;
+}
+
+/* --- Responsive --- */
+@media (max-width: 991px) {
+  .irr-sidebar {
+    transform: translateX(-100%);
+  }
+  .irr-sidebar.is-open {
+    transform: translateX(0);
+  }
+  .irr-main {
+    margin-left: 0;
+  }
+  .irr-search {
+    width: 200px;
+  }
+}
+
+.irr-mobile-toggle {
+  display: none;
+}
+@media (max-width: 991px) {
+  .irr-mobile-toggle {
+    display: flex;
+  }
+}
+
+/* Scrollbar (subtle, ledger-appropriate) */
+.irr-nav::-webkit-scrollbar {
+  width: 6px;
+}
+.irr-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
