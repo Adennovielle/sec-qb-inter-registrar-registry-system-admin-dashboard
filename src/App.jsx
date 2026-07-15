@@ -12,31 +12,64 @@ import AuditLog from "./pages/AuditLog";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import CreateUser from "./pages/CreateUser";
+import PageNotFound from "./pages/PageNotFound";
+import axios from "axios";
+import ProtectedRoute from "./helpers/ProtectedRoute";
 
 export default function App() {
-  const [authState, setAuthState] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [authState, setAuthState] = useState({
+    username: "",
+    id: 0,
+    status: false,
+  });
 
   useEffect(() => {
-    if (localStorage.getItem("accessToken")) {
-      setAuthState(true);
-    }
+    axios
+      .get("http://localhost:8080/auth/validate-token", {
+        headers: {
+          accessToken: localStorage.getItem("accessToken"),
+        },
+      })
+      .then((res) => {
+        if (res.data.error) {
+          setAuthState({
+            username: "",
+            id: 0,
+            status: false,
+          });
+        } else {
+          setAuthState({
+            username: res.data.username,
+            id: res.data.id,
+            status: true,
+          });
+        }
+
+        setLoading(false);
+      });
   }, []);
 
   return (
-    <AuthContext.Provider value={{ authState, setAuthState }}>
+    <AuthContext.Provider
+      value={{ authState, setAuthState, loading, setLoading }}
+    >
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="qualified-buyers" element={<QualifiedBuyers />} />
-            <Route path="registrars" element={<Registrars />} />
-            <Route path="transfers" element={<Transfers />} />
-            <Route path="compliance" element={<Compliance />} />
-            <Route path="audit-log" element={<AuditLog />} />
-            <Route path="settings" element={<Settings />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="qualified-buyers" element={<QualifiedBuyers />} />
+              <Route path="registrars" element={<Registrars />} />
+              <Route path="transfers" element={<Transfers />} />
+              <Route path="compliance" element={<Compliance />} />
+              <Route path="audit-log" element={<AuditLog />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
           </Route>
           <Route path="/login" element={<Login />} />
           <Route path="/create-user" element={<CreateUser />} />
+          <Route path="*" element={<PageNotFound />} />
         </Routes>
       </BrowserRouter>
     </AuthContext.Provider>

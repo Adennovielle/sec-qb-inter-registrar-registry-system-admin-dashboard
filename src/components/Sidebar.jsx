@@ -8,6 +8,7 @@ import {
   IconShield,
   IconSettings,
   IconFile,
+  IconUser,
 } from "./Icons";
 
 export default function Sidebar({ open }) {
@@ -49,6 +50,9 @@ export default function Sidebar({ open }) {
         </NavLink>
         <NavLink to="/audit-log" className={navClass}>
           <IconFile /> Audit Log
+        </NavLink>
+        <NavLink to="/audit-log" className={navClass}>
+          <IconUser /> Users
         </NavLink>
         <NavLink to="/settings" className={navClass}>
           <IconSettings /> Settings

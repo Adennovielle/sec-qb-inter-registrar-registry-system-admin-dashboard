@@ -2,12 +2,13 @@ import { useState, useContext } from "react";
 import { MdAccountBalance } from "react-icons/md";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import { AuthContext } from "../helpers/AuthContext";
 export default function Login() {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const { setAuthState } = useContext(AuthContext);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const data = {
@@ -19,8 +20,12 @@ export default function Login() {
       if (res.data.error) {
         alert(res.data.error);
       } else {
-        localStorage.setItem("accessToken", res.data);
-        setAuthState(true);
+        localStorage.setItem("accessToken", res.data.token);
+        setAuthState({
+          username: res.data.username,
+          id: res.data.id,
+          status: true,
+        });
         navigate("/");
       }
     });
