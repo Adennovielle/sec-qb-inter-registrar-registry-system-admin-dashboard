@@ -51,7 +51,9 @@ export default function Topbar({ onToggleSidebar }) {
             aria-expanded="false"
           >
             <div className="irr-profile">
-              <div className="irr-avatar">JM</div>
+              <div className="irr-avatar">
+                {authState.username?.[0]?.toUpperCase() || "?"}
+              </div>
 
               <div className="irr-profile-text text-start">
                 <div className="name">{authState.username || "-"}</div>

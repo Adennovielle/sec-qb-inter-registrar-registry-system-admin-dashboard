@@ -7,14 +7,7 @@ import { useEffect, useContext } from "react";
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  // const navigate = useNavigate();
-  // const { authState } = useContext(AuthContext);
 
-  // useEffect(() => {
-  //   if (!authState.status) {
-  //     navigate("/login");
-  //   }
-  // }, []);
   return (
     <div className="app-shell">
       <Sidebar open={sidebarOpen} />

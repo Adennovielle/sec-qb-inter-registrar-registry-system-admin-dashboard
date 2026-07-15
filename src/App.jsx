@@ -11,8 +11,10 @@ import Compliance from "./pages/Compliance";
 import AuditLog from "./pages/AuditLog";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
+import MyRegistry from "./pages//MyRegistry/MyRegistry";
 import CreateUser from "./pages/CreateUser";
 import PageNotFound from "./pages/PageNotFound";
+import SubmissionPortal from "./pages//SubmissionPortal/SubmissionPortal";
 import axios from "axios";
 import ProtectedRoute from "./helpers/ProtectedRoute";
 
@@ -59,11 +61,14 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
+              <Route path="my-registry" element={<MyRegistry />} />
+              <Route path="submission-portal" element={<SubmissionPortal />} />
               <Route path="qualified-buyers" element={<QualifiedBuyers />} />
               <Route path="registrars" element={<Registrars />} />
               <Route path="transfers" element={<Transfers />} />
               <Route path="compliance" element={<Compliance />} />
               <Route path="audit-log" element={<AuditLog />} />
+
               <Route path="settings" element={<Settings />} />
             </Route>
           </Route>

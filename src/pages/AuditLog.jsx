@@ -34,14 +34,21 @@ export default function AuditLog() {
         description="Chronological, append-only record of registry actions — who did what, to which record, and from where. Retained for SEC examination and internal review."
         action={
           <button className="btn-irr-outline">
-            <IconDownload style={{ width: 14, height: 14, marginRight: 6, verticalAlign: -2 }} />
+            <IconDownload
+              style={{
+                width: 14,
+                height: 14,
+                marginRight: 6,
+                verticalAlign: -2,
+              }}
+            />
             Export CSV
           </button>
         }
       />
 
       <Card>
-        <div className="irr-filter-bar">
+        {/* <div className="irr-filter-bar">
           {resultFilters.map((f) => (
             <button
               key={f}
@@ -52,7 +59,9 @@ export default function AuditLog() {
               {f === "all" ? "All results" : f}
             </button>
           ))}
-          <span style={{ width: 1, background: "var(--border)", margin: "0 2px" }} />
+          <span
+            style={{ width: 1, background: "var(--border)", margin: "0 2px" }}
+          />
           {actorFilters.map((f) => (
             <button
               key={f}
@@ -60,7 +69,11 @@ export default function AuditLog() {
               onClick={() => setActorFilter(f)}
               style={{ textTransform: "capitalize" }}
             >
-              {f === "all" ? "All actors" : f === "user" ? "User-initiated" : "System-initiated"}
+              {f === "all"
+                ? "All actors"
+                : f === "user"
+                  ? "User-initiated"
+                  : "System-initiated"}
             </button>
           ))}
           <input
@@ -70,7 +83,7 @@ export default function AuditLog() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
-        </div>
+        </div> */}
 
         <div className="irr-table-wrap">
           <table className="irr-table">
@@ -89,7 +102,9 @@ export default function AuditLog() {
               {rows.map((l) => (
                 <tr key={l.id}>
                   <td className="irr-table-id">{l.id}</td>
-                  <td className="text-mono" style={{ whiteSpace: "nowrap" }}>{l.timestamp}</td>
+                  <td className="text-mono" style={{ whiteSpace: "nowrap" }}>
+                    {l.timestamp}
+                  </td>
                   <td>
                     <div className="irr-cell-entity">
                       <span
@@ -97,8 +112,14 @@ export default function AuditLog() {
                           width: 26,
                           height: 26,
                           borderRadius: "50%",
-                          background: l.actorType === "system" ? "var(--seal-gold-tint)" : "var(--primary-tint-10)",
-                          color: l.actorType === "system" ? "var(--seal-gold)" : "var(--primary-color)",
+                          background:
+                            l.actorType === "system"
+                              ? "var(--seal-gold-tint)"
+                              : "var(--primary-tint-10)",
+                          color:
+                            l.actorType === "system"
+                              ? "var(--seal-gold)"
+                              : "var(--primary-color)",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -116,16 +137,34 @@ export default function AuditLog() {
                   </td>
                   <td>{l.action}</td>
                   <td>
-                    <span className="text-mono" style={{ fontSize: 12.5 }}>{l.entity}</span>
-                    <div style={{ fontSize: 11, color: "var(--ink-faint)" }}>{l.entityType}</div>
+                    <span className="text-mono" style={{ fontSize: 12.5 }}>
+                      {l.entity}
+                    </span>
+                    <div style={{ fontSize: 11, color: "var(--ink-faint)" }}>
+                      {l.entityType}
+                    </div>
                   </td>
-                  <td className="text-mono" style={{ fontSize: 12.5, color: "var(--ink-faint)" }}>{l.ip}</td>
-                  <td><StatusBadge status={l.result} /></td>
+                  <td
+                    className="text-mono"
+                    style={{ fontSize: 12.5, color: "var(--ink-faint)" }}
+                  >
+                    {l.ip}
+                  </td>
+                  <td>
+                    <StatusBadge status={l.result} />
+                  </td>
                 </tr>
               ))}
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: "center", color: "var(--ink-faint)", padding: "28px 0" }}>
+                  <td
+                    colSpan={7}
+                    style={{
+                      textAlign: "center",
+                      color: "var(--ink-faint)",
+                      padding: "28px 0",
+                    }}
+                  >
                     No log entries match this filter.
                   </td>
                 </tr>

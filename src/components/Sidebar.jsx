@@ -9,6 +9,8 @@ import {
   IconSettings,
   IconFile,
   IconUser,
+  IconMyRegistry,
+  IconSubmissionPortal,
 } from "./Icons";
 
 export default function Sidebar({ open }) {
@@ -34,6 +36,12 @@ export default function Sidebar({ open }) {
         </NavLink>
 
         <div className="irr-nav-section-label">Registry</div>
+        <NavLink to="/my-registry" className={navClass}>
+          <IconMyRegistry /> My Registry
+        </NavLink>
+        <NavLink to="/submission-portal" className={navClass}>
+          <IconSubmissionPortal /> Submission Portal
+        </NavLink>
         <NavLink to="/qualified-buyers" className={navClass}>
           <IconSeal /> Qualified Buyers
         </NavLink>
@@ -51,9 +59,7 @@ export default function Sidebar({ open }) {
         <NavLink to="/audit-log" className={navClass}>
           <IconFile /> Audit Log
         </NavLink>
-        <NavLink to="/audit-log" className={navClass}>
-          <IconUser /> Users
-        </NavLink>
+
         <NavLink to="/settings" className={navClass}>
           <IconSettings /> Settings
         </NavLink>
