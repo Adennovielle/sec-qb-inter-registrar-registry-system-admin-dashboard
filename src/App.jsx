@@ -12,7 +12,7 @@ import AuditLog from "./pages/AuditLog";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import MyRegistry from "./pages//MyRegistry/MyRegistry";
-import CreateUser from "./pages/CreateUser";
+// import CreateUser from "./pages/CreateUser";
 import PageNotFound from "./pages/PageNotFound";
 import SubmissionPortal from "./pages//SubmissionPortal/SubmissionPortal";
 import axios from "axios";
@@ -38,12 +38,14 @@ export default function App() {
           setAuthState({
             username: "",
             id: 0,
+            registrar_id: 0,
             status: false,
           });
         } else {
           setAuthState({
             username: res.data.username,
             id: res.data.id,
+            registrar_id: res.data.registrar_id,
             status: true,
           });
         }
@@ -73,7 +75,7 @@ export default function App() {
             </Route>
           </Route>
           <Route path="/login" element={<Login />} />
-          <Route path="/create-user" element={<CreateUser />} />
+          {/* <Route path="/create-user" element={<CreateUser />} /> */}
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </BrowserRouter>
