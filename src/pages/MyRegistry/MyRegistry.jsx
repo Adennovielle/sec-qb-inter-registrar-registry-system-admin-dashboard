@@ -1,25 +1,23 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import CreateUser from "../Modals/CreateUser";
-// import { Link } from "react-router-dom";
-import {
-  BsArrowClockwise,
-  BsSearch,
-  BsChevronLeft,
-  BsChevronRight,
-} from "react-icons/bs";
-import { IoFilterSharp } from "react-icons/io5";
 import { IoMdAdd } from "react-icons/io";
-import { CiExport } from "react-icons/ci";
-import { MdOutlineKeyboardArrowDown } from "react-icons/md";
 import { CiLink } from "react-icons/ci";
-import { dateFormatter } from "../../helpers/dateFormatter";
+import { dateFormatter } from "../../utils/dateFormatter";
 import "./MyRegistry.css";
+import { IoFilterSharp } from "react-icons/io5";
+import Toolbar from "./Toolbar";
+import { BsChevronBarLeft, BsChevronRight } from "react-icons/bs";
 
 const MyRegistry = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortOrder, setSortOrder] = useState("");
   const [activeTab, setActiveTab] = useState("Central Registry");
   const [usersData, setUsersData] = useState([]);
   const [submissionsData, setSubmissionData] = useState([]);
+  const [qualifiedBuyersData, setQualifiedBuyersData] = useState([]);
+  const [relyingRegistryData, setRelyingRegistryData] = useState([]);
+  const [issuingRegistryData, setIssuingRegistryData] = useState([]);
 
   const registryTabs = [
     "Central Registry",
@@ -29,10 +27,58 @@ const MyRegistry = () => {
     "Users",
   ];
 
+  const handleRefresh = () => {
+    getUsers();
+    getSubmissions();
+    getQualifiedBuyers();
+    getQualifiedBuyersRelyingRegistry();
+  };
   useEffect(() => {
     getUsers();
     getSubmissions();
+    getQualifiedBuyers();
+    getQualifiedBuyersRelyingRegistry();
+    getQualifiedBuyersIssuingRegistry();
   }, []);
+
+  const handleExportExcel = () => {
+    const exportData = sortedData.map((row) => {
+      const obj = {};
+
+      currentRegistry.columns.forEach((col) => {
+        obj[col.header] = row[col.accessor] ?? "-";
+      });
+
+      return obj;
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Registry");
+
+    XLSX.writeFile(workbook, `${activeTab}.xlsx`);
+  };
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+
+    const headers = [currentRegistry.columns.map((col) => col.header)];
+
+    const rows = sortedData.map((row) =>
+      currentRegistry.columns.map((col) => row[col.accessor] ?? "-"),
+    );
+
+    autoTable(doc, {
+      head: headers,
+      body: rows,
+    });
+
+    doc.save(`${activeTab}.pdf`);
+  };
+  const handlePrint = () => {
+    window.print();
+  };
 
   const getUsers = async () => {
     try {
@@ -61,98 +107,101 @@ const MyRegistry = () => {
       console.error(err);
     }
   };
+  const getQualifiedBuyers = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:8080/qualified-buyers/central-registry",
+        {
+          headers: {
+            accessToken: localStorage.getItem("accessToken"),
+          },
+        },
+      );
+
+      setQualifiedBuyersData(response.data.qualified_buyers);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const getQualifiedBuyersRelyingRegistry = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:8080/qualified-buyers/relying-registry",
+        {
+          headers: {
+            accessToken: localStorage.getItem("accessToken"),
+          },
+        },
+      );
+
+      setRelyingRegistryData(response.data.relying_registry);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const getQualifiedBuyersIssuingRegistry = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:8080/qualified-buyers/issuing-registry",
+        {
+          headers: {
+            accessToken: localStorage.getItem("accessToken"),
+          },
+        },
+      );
+
+      setIssuingRegistryData(response.data.issuing_registry);
+    } catch (err) {
+      console.error(err);
+    }
+  };
   //------REGISTRY_DATA---------
-  const issuingRegistrarData = [
-    {
-      id: 1,
-      qbid: "MET-IND-24-6gH5vcQ7",
-      qbIdType: "Individual",
-      registrationDate: "17-May-2024",
-      certicateNo: "3034473952",
-      validityPeriod: "17-May-2027",
-      qbStatus: "ACTIVE",
-      issuingRegistrar: "METROPOLITAN SAMPLE ONLY",
-      nameOfRelyingRegistrar: "PHILIPPINE SAMPLE ONLY",
-      dateOfEvaluation: "17-May-2024",
-      nameOfPersonnelConductedEval: "Juan Dela Cruz",
-      designationOfPersonnel: "Compliance Officer",
-    },
-  ];
-  const centralRegistryData = [
-    {
-      id: 1,
-      qbid: "MET-IND-24-6gH5vcQ7",
-      qbName: "Individual",
-      qbType: "17-May-2024",
-      registrationDate: "3034473952",
-      corControlNumber: "17-May-2027",
-      validityPeriod: "ACTIVE",
-      qbStatus: "METROPOLITAN SAMPLE ONLY",
-      issuingRegistrar: "PHILIPPINE SAMPLE ONLY",
-      relyingRegistrar: "17-May-2024",
-    },
-  ];
 
-  const relyingRegistrarData = [
-    {
-      id: 1,
-      qbid: "MET-IND-24-6gH5vcQ7",
-      issuingRegistrar: "roar",
-      qbStatus: "Active",
-      certificateNo: "3034473952",
-      validityPeriod: "17-May-2024",
-    },
-  ];
-
-  // ---------END OF REGISTRY DATA-----------
   const registryConfig = {
     "Central Registry": {
       title: "SEC Central Registry of Qualified Buyers",
       columns: [
         { header: "QBID", accessor: "qbid" },
-        { header: "QB Name", accessor: "qbName" },
-        { header: "QB Type", accessor: "qbType" },
-        { header: "Registration Date", accessor: "registrationDate" },
-        { header: "COR Control Number", accessor: "corControlNumber" },
-        { header: "Validity Period", accessor: "validityPeriod" },
-        { header: "QB Status", accessor: "qbStatus" },
-        { header: "Issuing Registrar", accessor: "issuingRegistrar" },
-        {
-          header: "Relying Registrar",
-          accessor: "relyingRegistrar",
-        },
+        { header: "QB Name", accessor: "qb_name" },
+        { header: "QB Type", accessor: "qb_type" },
+        { header: "Registration Date", accessor: "registration_date" },
+        { header: "COR Control Number", accessor: "cor_control_number" },
+        { header: "Validity Period", accessor: "validity_period" },
+        { header: "QB Status", accessor: "qb_status" },
+        { header: "Issuing Registrar", accessor: "issuing_registrar" },
+        { header: "Relying Registrar", accessor: "relying_registrar" },
       ],
-      data: centralRegistryData,
+      data: qualifiedBuyersData,
     },
 
     "Issuing Registrar Tab": {
       title: "Issuing Registrar Registry",
       columns: [
         { header: "QBID", accessor: "qbid" },
-        { header: "QBID Type", accessor: "qbIdType" },
-        { header: "Registration Date", accessor: "registrationDate" },
-        { header: "Certificate No.", accessor: "certicateNo" },
-        { header: "Validity Period", accessor: "validityPeriod" },
-        { header: "QB Status", accessor: "qbStatus" },
-        { header: "Issuing Registrar", accessor: "issuingRegistrar" },
+        { header: "QBID Type", accessor: "qb_type" },
+        { header: "Registration Date", accessor: "registration_date" },
+        { header: "Certificate No.", accessor: "certificate_no" },
+        { header: "Validity Period", accessor: "validity_period" },
+        { header: "QB Status", accessor: "qb_status" },
+        { header: "Issuing Registrar", accessor: "issuing_registrar" },
         {
           header: "Name of Relying Registrar",
-          accessor: "nameOfRelyingRegistrar",
+          accessor: "relying_registrar",
         },
         {
           header: "Date of Evaluation",
-          accessor: "dateOfEvaluation",
+          accessor: "evaluation_date",
         },
         {
           header: "Name of Personnel who conducted the evaluation",
-          accessor: "nameOfPersonnelConductedEval",
+          accessor: "evaluator_name",
         },
         {
           header: "Designation of the Personnel",
-          accessor: "designationOfPersonnel",
+          accessor: "evaluator_designation",
         },
       ],
-      data: issuingRegistrarData,
+      data: issuingRegistryData,
     },
 
     "Relying Registrar Tab": {
@@ -161,22 +210,22 @@ const MyRegistry = () => {
         { header: "QBID", accessor: "qbid" },
         {
           header: "Issuing Registrar",
-          accessor: "issuingRegistrar",
+          accessor: "issuing_registrar",
         },
         {
           header: "QB Status",
-          accessor: "qbStatus",
+          accessor: "qb_status",
         },
         {
           header: "Certificate No.",
-          accessor: "certificateNo",
+          accessor: "certificate_no",
         },
         {
           header: "Validity Period",
-          accessor: "validityPeriod",
+          accessor: "validity_period",
         },
       ],
-      data: relyingRegistrarData,
+      data: relyingRegistryData,
     },
 
     Submissions: {
@@ -236,51 +285,48 @@ const MyRegistry = () => {
 
   const currentRegistry = registryConfig[activeTab];
 
+  const filteredData = currentRegistry.data.filter((row) =>
+    currentRegistry.columns.some((column) =>
+      String(row[column.accessor] ?? "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()),
+    ),
+  );
+
+  const sortedData = [...filteredData];
+
+  if (sortOrder === "asc") {
+    sortedData.sort((a, b) =>
+      String(a[currentRegistry.columns[0].accessor] ?? "").localeCompare(
+        String(b[currentRegistry.columns[0].accessor] ?? ""),
+      ),
+    );
+  }
+
+  if (sortOrder === "desc") {
+    sortedData.sort((a, b) =>
+      String(b[currentRegistry.columns[0].accessor] ?? "").localeCompare(
+        String(a[currentRegistry.columns[0].accessor] ?? ""),
+      ),
+    );
+  }
+
   return (
     <>
       <section id="my-registry">
         <div className="d-flex flex-column">
           {/* Toolbar */}
-          <div className="card shadow-sm mb-4">
-            <div className="card-body">
-              <div className="mb-4 ">
-                <button className="btn btn-secondary me-2 ps-4 pe-4 pt-2 pb-2">
-                  Issuing Tab
-                </button>
-                <button className="btn btn-success ps-4 pe-4 pt-2 pb-2">
-                  Relying Tab
-                </button>
-              </div>
-              <div className="d-flex mb-3 flex-col ">
-                <button className="btn btn-light d-flex align-items-center me-2 gap-2">
-                  <IoFilterSharp />
-                  Filters
-                  <MdOutlineKeyboardArrowDown />
-                </button>
-
-                <button className="btn btn-light d-flex align-items-center gap-2">
-                  <CiExport />
-                  Export
-                </button>
-
-                <div
-                  className="input-group ms-auto me-2"
-                  style={{ maxWidth: 500 }}
-                >
-                  <span className="input-group-text">
-                    <BsSearch />
-                  </span>
-
-                  <input className="form-control" placeholder="Search..." />
-                </div>
-
-                <button className="btn btn-success d-flex align-items-center gap-2">
-                  <BsArrowClockwise />
-                  Refresh
-                </button>
-              </div>
-            </div>
-          </div>
+          <Toolbar
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            currentRegistry={currentRegistry}
+            filteredData={filteredData}
+            sortedData={sortedData}
+            activeTab={activeTab}
+            onRefresh={handleRefresh}
+            sortOrder={sortOrder}
+            setSortOrder={setSortOrder}
+          />
 
           {/* Table */}
           <div className="card shadow-sm">
@@ -309,23 +355,17 @@ const MyRegistry = () => {
                   </thead>
 
                   <tbody>
-                    {currentRegistry.data.length > 0 ? (
-                      currentRegistry.data.map((row, index) => (
+                    {filteredData.length > 0 ? (
+                      sortedData.map((row, index) => (
                         <tr key={index}>
                           {currentRegistry.columns.map((column) => (
-                            // <td
-                            //   key={column.accessor}
-                            //   data-label={column.header}
-                            // >
-                            //   {row[column.accessor]}
-                            // </td>
                             <td
                               key={column.accessor}
                               data-label={column.header}
                             >
                               {column.accessor === "submitted_at"
                                 ? dateFormatter(row[column.accessor])
-                                : row[column.accessor]}
+                                : (row[column.accessor] ?? "-")}
                             </td>
                           ))}
                         </tr>
@@ -333,7 +373,7 @@ const MyRegistry = () => {
                     ) : (
                       <tr>
                         <td
-                          colSpan={currentRegistry.columns.length}
+                          colSpan={filteredData.length}
                           className="text-center py-5"
                         >
                           No records found.
@@ -364,12 +404,12 @@ const MyRegistry = () => {
 
               {/* Footer */}
               <div className="d-flex justify-content-between align-items-center p-3">
-                <small>Showing {currentRegistry.data.length} record(s)</small>
+                <small>Showing {filteredData.length} record(s)</small>
 
                 <ul className="pagination pagination-sm mb-0">
                   <li className="page-item disabled">
                     <button className="page-link">
-                      <BsChevronLeft />
+                      <BsChevronBarLeft />
                     </button>
                   </li>
 
