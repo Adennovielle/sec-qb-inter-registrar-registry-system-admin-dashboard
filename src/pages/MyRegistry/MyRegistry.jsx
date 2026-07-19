@@ -8,11 +8,12 @@ import "./MyRegistry.css";
 import { IoFilterSharp } from "react-icons/io5";
 import Toolbar from "./Toolbar";
 import { BsChevronBarLeft, BsChevronRight } from "react-icons/bs";
+import CreateQualifiedBuyerModal from "../Modals/CreateQualifiedBuyerModal";
 
 const MyRegistry = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("");
-  const [activeTab, setActiveTab] = useState("Central Registry");
+  const [activeTab, setActiveTab] = useState("Issuing Registrar Tab");
   const [usersData, setUsersData] = useState([]);
   const [submissionsData, setSubmissionData] = useState([]);
   const [qualifiedBuyersData, setQualifiedBuyersData] = useState([]);
@@ -333,15 +334,26 @@ const MyRegistry = () => {
             <div className="card-body p-0">
               <div className="p-3 bg-warning-subtle fw-semibold text-warning-emphasis d-flex justify-content-between align-items-center">
                 {currentRegistry.title}
-                <button
-                  type="button"
-                  className="btn btn-success d-inline-flex align-items-center gap-1"
-                  data-bs-toggle="modal"
-                  data-bs-target="#createUserModal"
-                >
-                  <span>Create User</span>
-                  <IoMdAdd className="fs-5" />
-                </button>
+                <div className="d-flex gap-3">
+                  <button
+                    type="button"
+                    className="btn btn-success d-inline-flex align-items-center gap-1"
+                    data-bs-toggle="modal"
+                    data-bs-target="#createUserModal"
+                  >
+                    <span>Create User</span>
+                    <IoMdAdd className="fs-5" />
+                  </button>
+
+                  <button
+                    className="btn btn-primary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#createQBModal"
+                  >
+                    Open Create QB Modal
+                  </button>
+                  <CreateQualifiedBuyerModal />
+                </div>
               </div>
 
               <div className="table-responsive">

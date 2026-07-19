@@ -70,7 +70,6 @@ export default function App() {
               <Route path="transfers" element={<Transfers />} />
               <Route path="compliance" element={<Compliance />} />
               <Route path="audit-log" element={<AuditLog />} />
-
               <Route path="settings" element={<Settings />} />
             </Route>
           </Route>

@@ -54,6 +54,10 @@
   box-sizing: border-box;
 }
 
+.modal-dialog-scrollable .modal-content {
+  overflow: auto;
+  /* border: 3px solid rgb(0, 255, 85) !important; */
+}
 html,
 body {
   height: 100%;

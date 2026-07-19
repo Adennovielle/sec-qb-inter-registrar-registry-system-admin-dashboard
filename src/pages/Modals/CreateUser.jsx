@@ -15,20 +15,6 @@ const createUserSchema = Yup.object({
   role: Yup.string().required("Role is required."),
 });
 
-// const handleCreateUser = (values, { setSubmitting, resetForm }) => {
-//   axios
-//     .post("http://localhost:8080/auth/create-user", values)
-//     .then(() => {
-//       alert("User created successfully!");
-//       resetForm();
-//     })
-//     .catch((err) => {
-//       console.log(err);
-//     })
-//     .finally(() => {
-//       setSubmitting(false);
-//     });
-// };
 const handleCreateUser = async (values, { resetForm, setSubmitting }) => {
   try {
     const response = await axios.post(
