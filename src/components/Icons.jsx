@@ -7,7 +7,17 @@ const base = {
   strokeLinecap: "round",
   strokeLinejoin: "round",
 };
+export const IconSearchQualifiedBuyer = (p) => (
+  <svg viewBox="0 0 24 24" {...base} {...p}>
+    {/* User */}
+    <circle cx="10" cy="8" r="3" />
+    <path d="M5.5 17c1-2.8 3.2-4 4.5-4s3.5 1.2 4.5 4" />
 
+    {/* Search */}
+    <circle cx="17" cy="17" r="3" />
+    <path d="M19.2 19.2L22 22" />
+  </svg>
+);
 export const IconSubmissionPortal = (p) => (
   <svg viewBox="0 0 24 24" {...base} {...p}>
     {/* Document */}

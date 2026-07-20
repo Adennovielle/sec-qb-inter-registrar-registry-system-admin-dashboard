@@ -32,7 +32,7 @@
   --status-pending: #b8862e;
   --status-rejected: #9c3b3b;
   --status-review: #2e5c8f;
-
+  --tertiary-color: rgb(0, 137, 72);
   /* --- Type --- */
   --font-display: "Poppins", sans-serif;
   --font-body: "Poppins", sans-serif;
@@ -49,7 +49,9 @@
   --sidebar-width: 264px;
   --topbar-height: 68px;
 }
-
+.bg-sec-color {
+  background-color: var(--tertiary-color);
+}
 * {
   box-sizing: border-box;
 }
@@ -150,8 +152,8 @@ select:focus-visible {
 }
 
 .irr-brand-seal {
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   border: 1.5px solid var(--seal-gold);
   display: flex;

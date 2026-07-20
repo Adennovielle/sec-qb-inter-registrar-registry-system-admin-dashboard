@@ -7,6 +7,7 @@ import { AuthContext } from "../helpers/AuthContext";
 
 export default function Topbar({ onToggleSidebar }) {
   const { authState, setAuthState } = useContext(AuthContext);
+
   const navigate = useNavigate();
   const logout = () => {
     localStorage.removeItem("accessToken");
@@ -24,23 +25,23 @@ export default function Topbar({ onToggleSidebar }) {
           <IconMenu />
         </button>
 
-        <div className="irr-search">
+        {/* <div className="irr-search">
           <IconSearch />
           <input
             type="text"
             placeholder="Search buyer ID, registrar, or transfer ID..."
           />
-        </div>
+        </div> */}
       </div>
 
       <div className="irr-topbar-right">
-        <button
+        {/* <button
           className="irr-icon-btn position-relative"
           aria-label="Notifications"
         >
           <IconBell />
           <span className="dot" />
-        </button>
+        </button> */}
 
         {/* Profile Dropdown */}
         <div className="dropdown">
@@ -57,7 +58,7 @@ export default function Topbar({ onToggleSidebar }) {
 
               <div className="irr-profile-text text-start">
                 <div className="name">{authState.username || "-"}</div>
-                <div className="role">Admin</div>
+                <div className="role">{authState.role || "-"}</div>
               </div>
             </div>
           </button>

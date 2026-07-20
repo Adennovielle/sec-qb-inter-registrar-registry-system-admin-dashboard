@@ -248,6 +248,14 @@ const MyRegistry = () => {
           header: "Submission Type",
           accessor: "submission_type",
         },
+        {
+          header: "File Name",
+          accessor: "uploads_folder_name",
+        },
+        {
+          header: "File Link",
+          accessor: "file_url",
+        },
       ],
       data: submissionsData,
     },
@@ -333,8 +341,9 @@ const MyRegistry = () => {
           <div className="card shadow-sm">
             <div className="card-body p-0">
               <div className="p-3 bg-warning-subtle fw-semibold text-warning-emphasis d-flex justify-content-between align-items-center">
-                {currentRegistry.title}
-                <div className="d-flex gap-3">
+                <span>{currentRegistry.title}</span>
+
+                {currentRegistry.title === "User Accounts" ? (
                   <button
                     type="button"
                     className="btn btn-success d-inline-flex align-items-center gap-1"
@@ -344,16 +353,20 @@ const MyRegistry = () => {
                     <span>Create User</span>
                     <IoMdAdd className="fs-5" />
                   </button>
+                ) : currentRegistry.title ===
+                  "SEC Central Registry of Qualified Buyers" ? (
+                  <div className="d-flex gap-3">
+                    <button
+                      className="btn btn-primary"
+                      data-bs-toggle="modal"
+                      data-bs-target="#createQBModal"
+                    >
+                      Open Create QB Modal
+                    </button>
 
-                  <button
-                    className="btn btn-primary"
-                    data-bs-toggle="modal"
-                    data-bs-target="#createQBModal"
-                  >
-                    Open Create QB Modal
-                  </button>
-                  <CreateQualifiedBuyerModal />
-                </div>
+                    <CreateQualifiedBuyerModal />
+                  </div>
+                ) : null}
               </div>
 
               <div className="table-responsive">
@@ -375,9 +388,36 @@ const MyRegistry = () => {
                               key={column.accessor}
                               data-label={column.header}
                             >
-                              {column.accessor === "submitted_at"
-                                ? dateFormatter(row[column.accessor])
-                                : (row[column.accessor] ?? "-")}
+                              {column.accessor === "submitted_at" ? (
+                                dateFormatter(row[column.accessor])
+                              ) : column.accessor === "qb_status" ? (
+                                <span
+                                  className={`badge ${
+                                    row.qb_status === "ACTIVE"
+                                      ? "bg-success"
+                                      : row.qb_status === "EXPIRED"
+                                        ? "bg-danger"
+                                        : "bg-warning text-dark"
+                                  }`}
+                                >
+                                  {row.qb_status}
+                                </span>
+                              ) : column.accessor === "file_url" ? (
+                                row.file_url ? (
+                                  <a
+                                    href={row.file_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title={row.file_original_name}
+                                  >
+                                    <CiLink className="fs-3 text-primary" />
+                                  </a>
+                                ) : (
+                                  "-"
+                                )
+                              ) : (
+                                (row[column.accessor] ?? "-")
+                              )}
                             </td>
                           ))}
                         </tr>

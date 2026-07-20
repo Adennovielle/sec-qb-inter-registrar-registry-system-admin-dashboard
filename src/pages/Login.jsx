@@ -3,6 +3,8 @@ import { MdAccountBalance } from "react-icons/md";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../helpers/AuthContext";
+import SecLogo from "../../public/favicon.png";
+import LoginBg from "../../public/login-bg.jpg";
 export default function Login() {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
@@ -23,7 +25,9 @@ export default function Login() {
         localStorage.setItem("accessToken", res.data.token);
         setAuthState({
           username: res.data.username,
+          role: res.data.role,
           id: res.data.id,
+          registrar_id: res.data.registrar_id,
           status: true,
         });
         navigate("/");
@@ -34,7 +38,11 @@ export default function Login() {
   return (
     <div
       className="container-fluid min-vh-100 d-flex justify-content-center align-items-center"
-      style={{ backgroundColor: "#f5f7f9" }}
+      style={{
+        backgroundImage: `url(${LoginBg})`,
+        backgroundPosition: "center",
+        backgroundSize: "cover",
+      }}
     >
       <div className="col-11 col-sm-10 col-md-8 col-lg-5 col-xl-4">
         <div
@@ -49,10 +57,11 @@ export default function Login() {
                 style={{
                   width: 80,
                   height: 80,
-                  backgroundColor: "rgb(1, 71, 47)",
+                  backgroundColor: "white",
                 }}
               >
                 <MdAccountBalance size={40} />
+                <img src={SecLogo} alt="" style={{ width: "100%" }} />
               </div>
 
               <div className="text-uppercase small fw-semibold text-secondary">

@@ -71,7 +71,7 @@ const Toolbar = ({
 
           <div className="dropdown">
             <button
-              className="btn btn-light dropdown-toggle"
+              className="btn btn-light dropdown-toggle d-flex align-items-center gap-2"
               data-bs-toggle="dropdown"
             >
               <CiExport />
@@ -116,7 +116,7 @@ const Toolbar = ({
 
             <input
               className="form-control"
-              placeholder="Search..."
+              placeholder="Search buyer ID, registrar, or COR Control No...."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
