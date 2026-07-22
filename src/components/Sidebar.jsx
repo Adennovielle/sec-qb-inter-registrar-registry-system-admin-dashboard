@@ -42,11 +42,14 @@ export default function Sidebar({ open }) {
         <NavLink to="/qbid-search" className={navClass}>
           <IconSearchQualifiedBuyer /> QBID Search
         </NavLink>
+        <NavLink to="/submission-docs-portal" className={navClass}>
+          <IconSubmissionPortal /> Submission Portal
+        </NavLink>
         <NavLink to="/my-registry" className={navClass}>
           <IconMyRegistry /> My Registry
         </NavLink>
         <NavLink to="/submission-portal" className={navClass}>
-          <IconSubmissionPortal /> Submission Portal
+          <IconSubmissionPortal /> Submission Portallll
         </NavLink>
         <NavLink to="/users" className={navClass}>
           <IconUser /> Users

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import CreateUser from "../Modals/CreateUser";
 import { IoMdAdd } from "react-icons/io";
@@ -6,27 +6,32 @@ import { CiLink } from "react-icons/ci";
 import { dateFormatter } from "../../utils/dateFormatter";
 import "./MyRegistry.css";
 import { IoFilterSharp } from "react-icons/io5";
-import Toolbar from "./Toolbar";
+import MyRegistryToolbar from "../../components/MyRegistryToolbar";
 import { BsChevronBarLeft, BsChevronRight } from "react-icons/bs";
 import CreateQualifiedBuyerModal from "../Modals/CreateQualifiedBuyerModal";
+import { AuthContext } from "../../helpers/AuthContext";
 
 const MyRegistry = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("");
-  const [activeTab, setActiveTab] = useState("Issuing Registrar Tab");
+  const [activeTab, setActiveTab] = useState("Central Registry");
   const [usersData, setUsersData] = useState([]);
   const [submissionsData, setSubmissionData] = useState([]);
   const [qualifiedBuyersData, setQualifiedBuyersData] = useState([]);
   const [relyingRegistryData, setRelyingRegistryData] = useState([]);
   const [issuingRegistryData, setIssuingRegistryData] = useState([]);
+  const { authState, setAuthState } = useContext(AuthContext);
 
-  const registryTabs = [
-    "Central Registry",
-    "Issuing Registrar Tab",
-    "Relying Registrar Tab",
-    "Submissions",
-    "Users",
-  ];
+  const registryTabs =
+    authState.role === "admin"
+      ? [
+          "Central Registry",
+          "Issuing Registrar Tab",
+          "Relying Registrar Tab",
+          "Submissions",
+          "Users",
+        ]
+      : ["Central Registry"];
 
   const handleRefresh = () => {
     getUsers();
@@ -35,12 +40,17 @@ const MyRegistry = () => {
     getQualifiedBuyersRelyingRegistry();
   };
   useEffect(() => {
+    if (authState.role === "admin") {
+      setActiveTab("Central Registry");
+    } else {
+      setActiveTab("Central Registry");
+    }
     getUsers();
     getSubmissions();
     getQualifiedBuyers();
     getQualifiedBuyersRelyingRegistry();
     getQualifiedBuyersIssuingRegistry();
-  }, []);
+  }, [authState.role]);
 
   const handleExportExcel = () => {
     const exportData = sortedData.map((row) => {
@@ -76,9 +86,6 @@ const MyRegistry = () => {
     });
 
     doc.save(`${activeTab}.pdf`);
-  };
-  const handlePrint = () => {
-    window.print();
   };
 
   const getUsers = async () => {
@@ -292,7 +299,8 @@ const MyRegistry = () => {
     },
   };
 
-  const currentRegistry = registryConfig[activeTab];
+  const currentRegistry =
+    registryConfig[activeTab] || registryConfig["Central Registry"];
 
   const filteredData = currentRegistry.data.filter((row) =>
     currentRegistry.columns.some((column) =>
@@ -325,7 +333,7 @@ const MyRegistry = () => {
       <section id="my-registry">
         <div className="d-flex flex-column">
           {/* Toolbar */}
-          <Toolbar
+          <MyRegistryToolbar
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
             currentRegistry={currentRegistry}
@@ -335,6 +343,7 @@ const MyRegistry = () => {
             onRefresh={handleRefresh}
             sortOrder={sortOrder}
             setSortOrder={setSortOrder}
+            tableName="registryTable"
           />
 
           {/* Table */}
@@ -370,7 +379,10 @@ const MyRegistry = () => {
               </div>
 
               <div className="table-responsive">
-                <table className="table table-hover align-middle mb-0 irr-table">
+                <table
+                  className="table table-hover align-middle mb-0 irr-table"
+                  id="registryTable"
+                >
                   <thead className="table-success">
                     <tr>
                       {currentRegistry.columns.map((column) => (

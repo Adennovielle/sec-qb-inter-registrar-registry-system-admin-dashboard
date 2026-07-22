@@ -3,9 +3,9 @@ import { BsArrowClockwise, BsSearch } from "react-icons/bs";
 import { IoFilterSharp } from "react-icons/io5";
 import { CiExport } from "react-icons/ci";
 import { MdOutlineKeyboardArrowDown } from "react-icons/md";
-import { exportExcel, exportPDF, printTable } from "../../utils/exportUtils";
+import { exportExcel, exportPDF, printTable } from "../utils/exportUtils";
 
-const Toolbar = ({
+const MyRegistryToolbar = ({
   searchTerm,
   setSearchTerm,
   currentRegistry,
@@ -15,9 +15,11 @@ const Toolbar = ({
   sortOrder,
   setSortOrder,
   sortedData,
+  showTabs,
+  tableName,
 }) => {
   return (
-    <div className="card shadow-sm mb-4" id="toolbar">
+    <div className="card  mb-4" id="toolbar">
       <div className="card-body">
         <div className="mb-4">
           <button className="btn btn-secondary me-2">Issuing Tab</button>
@@ -102,7 +104,10 @@ const Toolbar = ({
               </li>
 
               <li>
-                <button className="dropdown-item" onClick={printTable}>
+                <button
+                  className="dropdown-item"
+                  onClick={() => printTable(tableName)}
+                >
                   Print
                 </button>
               </li>
@@ -132,4 +137,4 @@ const Toolbar = ({
   );
 };
 
-export default Toolbar;
+export default MyRegistryToolbar;

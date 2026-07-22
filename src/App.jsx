@@ -18,6 +18,7 @@ import Users from "./pages/Users/Users";
 import QbIdSearch from "./pages/QbIdSearch/QbIdSearch";
 import axios from "axios";
 import ProtectedRoute from "./helpers/ProtectedRoute";
+import SubmissionDocsPortal from "./pages/SubmissionDocsPortal/SubmissionDocsPortal";
 
 export default function App() {
   const [loading, setLoading] = useState(true);
@@ -69,6 +70,10 @@ export default function App() {
               {/* <Route index element={<Dashboard />} /> */}
               <Route index path="/" element={<QbIdSearch />} />
               <Route path="qbid-search" element={<QbIdSearch />} />
+              <Route
+                path="submission-docs-portal"
+                element={<SubmissionDocsPortal />}
+              />
               <Route path="my-registry" element={<MyRegistry />} />
               <Route path="submission-portal" element={<SubmissionPortal />} />
               <Route path="users" element={<Users />} />

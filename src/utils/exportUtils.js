@@ -68,6 +68,57 @@ export const exportPDF = (columns, data, filename) => {
   doc.save(`${filename}.pdf`);
 };
 
-export const printTable = () => {
-  window.print();
+export const printTable = (tableId) => {
+  const table = document.getElementById(tableId);
+
+  if (!table) {
+    console.error(`Table with id "${tableId}" not found.`);
+    return;
+  }
+
+  const printWindow = window.open("", "_blank", "width=1000,height=700");
+
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Print Table</title>
+
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        />
+
+        <style>
+          body {
+            padding: 20px;
+          }
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+
+          th,
+          td {
+            border: 1px solid #ddd;
+            padding: 8px;
+          }
+
+          thead {
+            background: #198754;
+            color: white;
+          }
+        </style>
+      </head>
+
+      <body>
+        ${table.outerHTML}
+      </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+  printWindow.close();
 };

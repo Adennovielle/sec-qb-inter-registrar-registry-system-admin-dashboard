@@ -1,0 +1,17 @@
+.qbid-field {
+  width: 130px;
+}
+
+.qbid-field.serial {
+  width: 160px;
+}
+
+.qbid-field input {
+  height: 42px;
+}
+
+.qbid-dash {
+  font-size: 28px;
+  font-weight: bold;
+  line-height: 42px;
+}

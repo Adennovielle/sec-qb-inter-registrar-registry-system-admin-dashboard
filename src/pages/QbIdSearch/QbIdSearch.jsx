@@ -1,29 +1,101 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import "./QbIdSearch.css";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
-
+import { exportPDF, exportExcel, printTable } from "../../utils/exportUtils";
 const QbIdSearch = () => {
   const [searchValue, setSearchValue] = useState("");
-  const [searchResult, setSearchResult] = useState("");
+  const [searchResult, setSearchResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [searchError, setSearchError] = useState("");
 
   const searchQbId = async () => {
+    if (!searchValue.trim()) {
+      setSearchError("Please enter QBID.");
+      return;
+    }
+
     try {
+      setLoading(true);
+      setSearchResult(null);
+      setSearchError("");
+
       const response = await axios.get(
-        `http://localhost:8080/qualified-buyers/search/${searchValue}`,
+        `http://localhost:8080/qualified-buyers/search/${searchValue.trim()}`,
         {
           headers: {
             accessToken: localStorage.getItem("accessToken"),
           },
         },
       );
-      setSearchResult(response.data.qualified_buyer);
+
+      if (response.data.qualified_buyer) {
+        setSearchResult(response.data.qualified_buyer);
+      } else {
+        setSearchError("Qualified Buyer ID not found.");
+      }
     } catch (err) {
       console.error(err);
+
+      if (err.response && err.response.status === 404) {
+        setSearchError("No Qualified Buyer record found for this QBID.");
+      } else {
+        setSearchError("Something went wrong while searching.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
+  const handleClear = () => {
+    setSearchValue("");
+    setSearchResult(null);
+    setSearchError("");
+  };
 
-  const navigate = useNavigate();
+  const handleExportPDF = () => {
+    const columns = [
+      {
+        header: "QBID",
+        accessor: "qbid",
+      },
+      {
+        header: "QB Name",
+        accessor: "qb_name",
+      },
+      {
+        header: "QB Type",
+        accessor: "qb_type",
+      },
+      {
+        header: "Registration Date",
+        accessor: "registration_date",
+      },
+      {
+        header: "COR Control Number",
+        accessor: "cor_control_number",
+      },
+      {
+        header: "Validity Period",
+        accessor: "validity_period",
+      },
+      {
+        header: "QB Status",
+        accessor: "qb_status",
+      },
+      {
+        header: "Issuing Registrar",
+        accessor: "issuing_registrar",
+      },
+      {
+        header: "Relying Registrar",
+        accessor: "relying_registrar",
+      },
+    ];
+
+    exportPDF(columns, [searchResult], `Qualified_Buyer_${searchResult.qbid}`);
+  };
+  const handlePrint = () => {
+    printTable("qbVerificationTable");
+  };
   return (
     <section
       className="qualified-buyer-verification"
@@ -32,13 +104,12 @@ const QbIdSearch = () => {
       <div
         className="text-center text-white fs-5 te bg-sec-color"
         style={{ padding: "25px" }}
-        searchResult
       >
         To verify QB status, enter the provided Qualified Buyer Identification
         Number (QBID) below:
       </div>
 
-      <div className="d-flex justify-content-center mt-5">
+      <div className="d-flex justify-content-center mt-4">
         <div
           className="shadow-lg border-0 rounded-3 "
           style={{ width: "100%", maxWidth: "1000px" }}
@@ -60,29 +131,47 @@ const QbIdSearch = () => {
               className="form-control form-control-lg mb-3"
               placeholder="Enter Qualified Buyer Identification Number (QBID)"
             />
-            <button className="btn btn-success px-4" onClick={searchQbId}>
-              Search
+            <button
+              className="btn btn-success px-4"
+              onClick={searchQbId}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <span
+                    className="spinner-border spinner-border-sm me-2"
+                    role="status"
+                  ></span>
+                  Searching...
+                </>
+              ) : (
+                "Search"
+              )}
             </button>
             <button
               className="btn btn-light border px-4 ms-2"
-              // onClick={handleClear}
+              onClick={handleClear}
             >
               Clear
             </button>
-            <div
-            // className={`${
-            //   searchError === "Searching..."
-            //     ? "text-secondary"
-            //     : "text-danger"
-            // } mt-2`}
-            >
-              {/* {searchError} */}
+            <div className="mt-3">
+              {searchError && (
+                <div className="alert alert-danger">{searchError}</div>
+              )}
             </div>
+            {searchResult && (
+              <div className="alert alert-success mt-3">
+                Qualified Buyer record found.
+              </div>
+            )}
             {searchResult && (
               <div>
                 <div className="card border-success shadow-sm mt-3">
                   <div className="card-body">
-                    <table className="table table-borderless align-middle mb-3">
+                    <table
+                      className="table table-borderless align-middle mb-3"
+                      id="qbVerificationTable"
+                    >
                       <tbody>
                         <tr className="border-bottom">
                           <th width="35%">QBID</th>
@@ -124,7 +213,15 @@ const QbIdSearch = () => {
                           <th>QB Status</th>
 
                           <td className="text-end">
-                            <span className={`badge bg-success`}>
+                            <span
+                              className={`badge ${
+                                searchResult.qb_status === "ACTIVE"
+                                  ? "bg-success"
+                                  : searchResult.qb_status === "EXPIRED"
+                                    ? "bg-danger"
+                                    : "bg-warning text-dark"
+                              }`}
+                            >
                               {searchResult.qb_status}
                             </span>
                           </td>
@@ -163,11 +260,17 @@ const QbIdSearch = () => {
                   </div>
                 </div>
                 <div className="d-flex gap-2 mt-3">
-                  <button className="btn btn-primary ps-4 pe-4">
-                    Export pdf
+                  <button
+                    className="btn btn-primary ps-4 pe-4"
+                    onClick={handleExportPDF}
+                  >
+                    Export PDF
                   </button>
-                  <button className="btn btn-warning ps-4 pe-4">
-                    Export image
+                  <button
+                    className="btn btn-warning ps-4 pe-4"
+                    onClick={handlePrint}
+                  >
+                    Export Image
                   </button>
                 </div>
               </div>

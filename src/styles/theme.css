@@ -52,6 +52,12 @@
 .bg-sec-color {
   background-color: var(--tertiary-color);
 }
+.fs-7 {
+  font-size: 13px;
+}
+.fs-8 {
+  font-size: 10px;
+}
 * {
   box-sizing: border-box;
 }

@@ -2,75 +2,110 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { Modal } from "bootstrap";
 
-const createUserSchema = Yup.object({
-  registrar_id: Yup.string(),
-  username: Yup.string().required("Username is required."),
-  email: Yup.string()
-    .email("Invalid email address.")
-    .required("Email is required."),
-  password: Yup.string()
-    .required("Password is required.")
-    .min(4, "Password must be at least 4 characters."),
-  role: Yup.string().required("Role is required."),
-});
+export default function UserForm({ mode = "create", user = null, onSuccess }) {
+  const isEdit = mode === "edit";
+  const validationSchema = Yup.object({
+    registrar_id: Yup.string(),
+    username: Yup.string().required("Username is required."),
+    email: Yup.string()
+      .email("Invalid email address.")
+      .required("Email is required."),
+    password: isEdit
+      ? Yup.string().min(4, "Password must be at least 4 characters.")
+      : Yup.string()
+          .required("Password is required.")
+          .min(4, "Password must be at least 4 characters."),
+    role: Yup.string().required("Role is required."),
+  });
 
-const handleCreateUser = async (values, { resetForm, setSubmitting }) => {
-  try {
-    const payload = {
-      ...values,
-      registrar_id: values.registrar_id || null,
-    };
+  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    try {
+      const payload = {
+        registrar_id: values.registrar_id || null,
+        username: values.username,
+        email: values.email,
+        role: values.role,
+      };
 
-    const response = await axios.post(
-      "http://localhost:8080/auth/create-user",
-      payload,
-    );
+      // password lang kapag may laman
+      if (values.password) {
+        payload.password = values.password;
+      }
 
-    await Swal.fire({
-      icon: "success",
-      title: "Success!",
-      text: response.data.message,
-      confirmButtonColor: "#198754",
-    });
+      let response;
 
-    resetForm();
+      if (isEdit) {
+        response = await axios.put(
+          `http://localhost:8080/auth/users/${user.id}`,
+          payload,
+          {
+            headers: {
+              accessToken: localStorage.getItem("accessToken"),
+            },
+          },
+        );
+      } else {
+        response = await axios.post(
+          "http://localhost:8080/auth/create-user",
+          payload,
+          {
+            headers: {
+              accessToken: localStorage.getItem("accessToken"),
+            },
+          },
+        );
+      }
 
-    setSubmitting(false);
+      await Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: response.data.message,
+        confirmButtonColor: "#198754",
+      });
 
-    // Close Bootstrap Modal
-    document.querySelector("[data-bs-dismiss='modal']")?.click();
-  } catch (err) {
-    setSubmitting(false);
+      resetForm();
 
-    Swal.fire({
-      icon: "error",
-      title: "Oops...",
-      text: err.response?.data?.message || "Something went wrong.",
-      confirmButtonColor: "#dc3545",
-    });
-  }
-};
+      if (onSuccess) {
+        await onSuccess();
+      }
 
-export default function CreateUser() {
+      const modal = Modal.getInstance(document.querySelector(".modal.show"));
+
+      modal?.hide();
+
+      setSubmitting(false);
+    } catch (err) {
+      setSubmitting(false);
+
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: err.response?.data?.message || "Something went wrong.",
+      });
+    }
+  };
+
   return (
     <Formik
+      enableReinitialize
       initialValues={{
-        registrar_id: "",
-        username: "",
-        email: "",
+        registrar_id: user?.registrar_id || "",
+        username: user?.username || "",
+        email: user?.email || "",
         password: "",
-        role: "",
+        role: user?.role || "",
       }}
-      validationSchema={createUserSchema}
-      onSubmit={handleCreateUser}
+      validationSchema={validationSchema}
+      onSubmit={handleSubmit}
     >
       {({
         values,
         errors,
         touched,
-        handleChange,
         handleBlur,
+        handleChange,
         handleSubmit,
         isSubmitting,
       }) => (
@@ -140,6 +175,7 @@ export default function CreateUser() {
             <input
               type="password"
               name="password"
+              placeholder={isEdit ? "Leave blank to keep current password" : ""}
               className={`form-control ${
                 touched.password && errors.password ? "is-invalid" : ""
               }`}
@@ -186,7 +222,7 @@ export default function CreateUser() {
               className="btn btn-success"
               disabled={isSubmitting}
             >
-              Create User
+              {isEdit ? "Update User" : "Create User"}
             </button>
           </div>
         </form>
