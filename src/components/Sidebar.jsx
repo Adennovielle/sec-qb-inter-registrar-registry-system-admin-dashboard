@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useContext } from "react";
 import { NavLink } from "react-router-dom";
 import SecLogo from "../../public/favicon.png";
+import { AuthContext } from "../helpers/AuthContext";
 import {
   IconGrid,
   IconSeal,
@@ -16,6 +17,8 @@ import {
 } from "./Icons";
 
 export default function Sidebar({ open }) {
+  const { authState, setAuthState } = useContext(AuthContext);
+
   const navClass = ({ isActive }) =>
     "irr-nav-link" + (isActive ? " active" : "");
 
@@ -32,29 +35,32 @@ export default function Sidebar({ open }) {
         </div>
       </div>
 
-      <nav className="irr-nav">
-        {/* <div className="irr-nav-section-label">Overview</div>
-        <NavLink to="/" end className={navClass}>
-          <IconGrid /> Dashboard
+      {/* <div className="irr-nav-section-label">Overview</div> */}
+      {/* <NavLink to="/" end className={navClass}>
+        <IconGrid /> Dashboard
         </NavLink> */}
-
+      <nav className="irr-nav">
         <div className="irr-nav-section-label">Registry</div>
+
         <NavLink to="/qbid-search" className={navClass}>
           <IconSearchQualifiedBuyer /> QBID Search
         </NavLink>
+
         <NavLink to="/submission-docs-portal" className={navClass}>
           <IconSubmissionPortal /> Submission Portal
         </NavLink>
+
         <NavLink to="/my-registry" className={navClass}>
           <IconMyRegistry /> My Registry
         </NavLink>
-        <NavLink to="/submission-portal" className={navClass}>
-          <IconSubmissionPortal /> Submission Portallll
-        </NavLink>
-        <NavLink to="/users" className={navClass}>
-          <IconUser /> Users
-        </NavLink>
-        {/* <NavLink to="/qualified-buyers" className={navClass}>
+
+        {authState.role === "admin" && (
+          <NavLink to="/users" className={navClass}>
+            <IconUser /> Users
+          </NavLink>
+        )}
+      </nav>
+      {/* <NavLink to="/qualified-buyers" className={navClass}>
           <IconSeal /> Qualified Buyers
         </NavLink>
         <NavLink to="/registrars" className={navClass}>
@@ -75,7 +81,6 @@ export default function Sidebar({ open }) {
         <NavLink to="/settings" className={navClass}>
           <IconSettings /> Settings
         </NavLink> */}
-      </nav>
 
       <div className="irr-sidebar-footer">
         IRR-SYS 2026

@@ -1,27 +1,38 @@
 import React, { useState, useEffect, useContext } from "react";
-import axios from "axios";
-import CreateUser from "../Modals/CreateUser";
-import { IoMdAdd } from "react-icons/io";
 import { CiLink } from "react-icons/ci";
 import { dateFormatter } from "../../utils/dateFormatter";
+import { formatQBName } from "../../utils/fomatQbName";
 import "./MyRegistry.css";
-import { IoFilterSharp } from "react-icons/io5";
 import MyRegistryToolbar from "../../components/MyRegistryToolbar";
 import { BsChevronBarLeft, BsChevronRight } from "react-icons/bs";
-import CreateQualifiedBuyerModal from "../Modals/CreateQualifiedBuyerModal";
+import { FaEdit, FaTrash } from "react-icons/fa";
 import { AuthContext } from "../../helpers/AuthContext";
+import DeleteRegistryModal from "../Modals/DeleteRegistryModal";
+import axios from "axios";
+import { Modal } from "bootstrap";
+import {
+  getSubmissions,
+  getCentralRegistry,
+  getRelyingRegistry,
+  getIssuingRegistry,
+} from "../../services/myRegistryService";
 
 const MyRegistry = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("");
   const [activeTab, setActiveTab] = useState("Central Registry");
-  const [usersData, setUsersData] = useState([]);
   const [submissionsData, setSubmissionData] = useState([]);
   const [qualifiedBuyersData, setQualifiedBuyersData] = useState([]);
   const [relyingRegistryData, setRelyingRegistryData] = useState([]);
   const [issuingRegistryData, setIssuingRegistryData] = useState([]);
-  const { authState, setAuthState } = useContext(AuthContext);
-
+  const [selectedQB, setSelectedQB] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const { authState } = useContext(AuthContext);
+  const [deleteConfig, setDeleteConfig] = useState({
+    item: null,
+    action: null,
+    title: "",
+  });
   const registryTabs =
     authState.role === "admin"
       ? [
@@ -29,140 +40,174 @@ const MyRegistry = () => {
           "Issuing Registrar Tab",
           "Relying Registrar Tab",
           "Submissions",
-          "Users",
         ]
-      : ["Central Registry"];
+      : ["Submissions"];
+
+  const fetchRegistryData = async () => {
+    try {
+      const [submissions, centralRegistry, relyingRegistry, issuingRegistry] =
+        await Promise.all([
+          getSubmissions(authState.role),
+          getCentralRegistry(),
+          getRelyingRegistry(),
+          getIssuingRegistry(),
+        ]);
+
+      setSubmissionData(submissions);
+      setQualifiedBuyersData(centralRegistry);
+      setRelyingRegistryData(relyingRegistry);
+      setIssuingRegistryData(issuingRegistry);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleEdit = (row) => {
+    console.log("Edit:", row);
+  };
+
+  const closeDeleteModal = () => {
+    const modalElement = document.getElementById("deleteRegistryModal");
+
+    if (modalElement) {
+      const modal = Modal.getInstance(modalElement);
+      modal?.hide();
+    }
+
+    document.querySelectorAll(".modal-backdrop").forEach((el) => el.remove());
+    document.body.classList.remove("modal-open");
+    document.body.style.removeProperty("padding-right");
+
+    setSelectedQB(null);
+  };
+
+  const deleteQB = async (qbid) => {
+    try {
+      setDeleteLoading(true);
+
+      await axios.delete(`http://localhost:8080/qualified-buyers/${qbid}`, {
+        headers: {
+          accessToken: localStorage.getItem("accessToken"),
+        },
+      });
+
+      closeDeleteModal();
+      await fetchRegistryData();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const deleteIssuingRegistry = async (id) => {
+    try {
+      setDeleteLoading(true);
+
+      await axios.delete(`http://localhost:8080/issuing-registry/${id}`, {
+        headers: {
+          accessToken: localStorage.getItem("accessToken"),
+        },
+      });
+
+      closeDeleteModal();
+      await fetchRegistryData();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const deleteRelyingRegistry = async (id) => {
+    try {
+      setDeleteLoading(true);
+
+      await axios.delete(`http://localhost:8080/relying-registry/${id}`, {
+        headers: {
+          accessToken: localStorage.getItem("accessToken"),
+        },
+      });
+
+      closeDeleteModal();
+      await fetchRegistryData();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const deleteSubmission = async (id) => {
+    try {
+      setDeleteLoading(true);
+
+      await axios.delete(`http://localhost:8080/submissions/${id}`, {
+        headers: {
+          accessToken: localStorage.getItem("accessToken"),
+        },
+      });
+
+      closeDeleteModal();
+      await fetchRegistryData();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const handleDeleteClick = (row) => {
+    switch (activeTab) {
+      case "Central Registry":
+        setDeleteConfig({
+          item: row,
+          action: () => deleteQB(row.qbid),
+          title: "Qualified Buyer",
+        });
+        break;
+
+      case "Issuing Registrar Tab":
+        setDeleteConfig({
+          item: row,
+          action: () => deleteIssuingRegistry(row.id),
+          title: "Issuing Registry Record",
+        });
+        break;
+
+      case "Relying Registrar Tab":
+        setDeleteConfig({
+          item: row,
+          action: () => deleteRelyingRegistry(row.id),
+          title: "Relying Registry Record",
+        });
+        break;
+
+      case "Submissions":
+        setDeleteConfig({
+          item: row,
+          action: () => deleteSubmission(row.id),
+          title: "Submission",
+        });
+        break;
+
+      default:
+        break;
+    }
+  };
 
   const handleRefresh = () => {
-    getUsers();
-    getSubmissions();
-    getQualifiedBuyers();
-    getQualifiedBuyersRelyingRegistry();
+    fetchRegistryData();
   };
+
   useEffect(() => {
-    if (authState.role === "admin") {
-      setActiveTab("Central Registry");
-    } else {
-      setActiveTab("Central Registry");
-    }
-    getUsers();
-    getSubmissions();
-    getQualifiedBuyers();
-    getQualifiedBuyersRelyingRegistry();
-    getQualifiedBuyersIssuingRegistry();
-  }, [authState.role]);
-
-  const handleExportExcel = () => {
-    const exportData = sortedData.map((row) => {
-      const obj = {};
-
-      currentRegistry.columns.forEach((col) => {
-        obj[col.header] = row[col.accessor] ?? "-";
-      });
-
-      return obj;
-    });
-
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
-
-    const workbook = XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Registry");
-
-    XLSX.writeFile(workbook, `${activeTab}.xlsx`);
-  };
-  const handleExportPDF = () => {
-    const doc = new jsPDF();
-
-    const headers = [currentRegistry.columns.map((col) => col.header)];
-
-    const rows = sortedData.map((row) =>
-      currentRegistry.columns.map((col) => row[col.accessor] ?? "-"),
+    setActiveTab(
+      authState.role === "admin" ? "Central Registry" : "Submissions",
     );
 
-    autoTable(doc, {
-      head: headers,
-      body: rows,
-    });
+    fetchRegistryData();
+  }, [authState.role]);
 
-    doc.save(`${activeTab}.pdf`);
-  };
-
-  const getUsers = async () => {
-    try {
-      const response = await axios.get("http://localhost:8080/auth/users", {
-        headers: {
-          accessToken: localStorage.getItem("accessToken"),
-        },
-      });
-
-      setUsersData(response.data.users);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const getSubmissions = async () => {
-    try {
-      const response = await axios.get("http://localhost:8080/submissions", {
-        headers: {
-          accessToken: localStorage.getItem("accessToken"),
-        },
-      });
-
-      setSubmissionData(response.data.submissions);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-  const getQualifiedBuyers = async () => {
-    try {
-      const response = await axios.get(
-        "http://localhost:8080/qualified-buyers/central-registry",
-        {
-          headers: {
-            accessToken: localStorage.getItem("accessToken"),
-          },
-        },
-      );
-
-      setQualifiedBuyersData(response.data.qualified_buyers);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-  const getQualifiedBuyersRelyingRegistry = async () => {
-    try {
-      const response = await axios.get(
-        "http://localhost:8080/qualified-buyers/relying-registry",
-        {
-          headers: {
-            accessToken: localStorage.getItem("accessToken"),
-          },
-        },
-      );
-
-      setRelyingRegistryData(response.data.relying_registry);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-  const getQualifiedBuyersIssuingRegistry = async () => {
-    try {
-      const response = await axios.get(
-        "http://localhost:8080/qualified-buyers/issuing-registry",
-        {
-          headers: {
-            accessToken: localStorage.getItem("accessToken"),
-          },
-        },
-      );
-
-      setIssuingRegistryData(response.data.issuing_registry);
-    } catch (err) {
-      console.error(err);
-    }
-  };
   //------REGISTRY_DATA---------
 
   const registryConfig = {
@@ -178,6 +223,7 @@ const MyRegistry = () => {
         { header: "QB Status", accessor: "qb_status" },
         { header: "Issuing Registrar", accessor: "issuing_registrar" },
         { header: "Relying Registrar", accessor: "relying_registrar" },
+        { header: "Actions", accessor: "actions" },
       ],
       data: qualifiedBuyersData,
     },
@@ -208,6 +254,7 @@ const MyRegistry = () => {
           header: "Designation of the Personnel",
           accessor: "evaluator_designation",
         },
+        { header: "Actions", accessor: "actions" },
       ],
       data: issuingRegistryData,
     },
@@ -232,6 +279,7 @@ const MyRegistry = () => {
           header: "Validity Period",
           accessor: "validity_period",
         },
+        { header: "Actions", accessor: "actions" },
       ],
       data: relyingRegistryData,
     },
@@ -240,62 +288,36 @@ const MyRegistry = () => {
       title: "Submission History",
       columns: [
         {
-          header: "Timestamp",
+          header: "Submitted At",
           accessor: "submitted_at",
         },
         {
-          header: "Submission Reference No.",
+          header: "Submitted By",
+          accessor: "submitted_by",
+        },
+        {
+          header: "Reference No.",
           accessor: "submission_reference_no",
         },
         {
-          header: "Registrar Name",
+          header: "Registrar",
           accessor: "registrar_name",
         },
         {
-          header: "Submission Type",
-          accessor: "submission_type",
+          header: "SEC Form 39-QB",
+          accessor: "sec_form39_qb_url",
         },
         {
-          header: "File Name",
-          accessor: "uploads_folder_name",
+          header: "Letter of Undertaking",
+          accessor: "undertaking_url",
         },
         {
-          header: "File Link",
-          accessor: "file_url",
+          header: "SEC Form 39-Regs AR",
+          accessor: "sec_form39_regs_ar_url",
         },
+        { header: "Actions", accessor: "actions" },
       ],
       data: submissionsData,
-    },
-
-    Users: {
-      title: "User Accounts",
-      columns: [
-        {
-          header: "Username",
-          accessor: "username",
-        },
-        {
-          header: "Password",
-          accessor: "password",
-        },
-        {
-          header: "Email",
-          accessor: "email",
-        },
-        {
-          header: "Registrar ID",
-          accessor: "registrar_id",
-        },
-        {
-          header: "Registrar Name",
-          accessor: "registrar_name",
-        },
-        {
-          header: "Role",
-          accessor: "role",
-        },
-      ],
-      data: usersData,
     },
   };
 
@@ -311,6 +333,12 @@ const MyRegistry = () => {
   );
 
   const sortedData = [...filteredData];
+
+  if (activeTab === "Submissions") {
+    sortedData.sort(
+      (a, b) => new Date(b.submitted_at) - new Date(a.submitted_at),
+    );
+  }
 
   if (sortOrder === "asc") {
     sortedData.sort((a, b) =>
@@ -351,31 +379,6 @@ const MyRegistry = () => {
             <div className="card-body p-0">
               <div className="p-3 bg-warning-subtle fw-semibold text-warning-emphasis d-flex justify-content-between align-items-center">
                 <span>{currentRegistry.title}</span>
-
-                {currentRegistry.title === "User Accounts" ? (
-                  <button
-                    type="button"
-                    className="btn btn-success d-inline-flex align-items-center gap-1"
-                    data-bs-toggle="modal"
-                    data-bs-target="#createUserModal"
-                  >
-                    <span>Create User</span>
-                    <IoMdAdd className="fs-5" />
-                  </button>
-                ) : currentRegistry.title ===
-                  "SEC Central Registry of Qualified Buyers" ? (
-                  <div className="d-flex gap-3">
-                    <button
-                      className="btn btn-primary"
-                      data-bs-toggle="modal"
-                      data-bs-target="#createQBModal"
-                    >
-                      Open Create QB Modal
-                    </button>
-
-                    <CreateQualifiedBuyerModal />
-                  </div>
-                ) : null}
               </div>
 
               <div className="table-responsive">
@@ -402,6 +405,8 @@ const MyRegistry = () => {
                             >
                               {column.accessor === "submitted_at" ? (
                                 dateFormatter(row[column.accessor])
+                              ) : column.accessor === "qb_name" ? (
+                                formatQBName(row.qb_name)
                               ) : column.accessor === "qb_status" ? (
                                 <span
                                   className={`badge ${
@@ -414,13 +419,36 @@ const MyRegistry = () => {
                                 >
                                   {row.qb_status}
                                 </span>
-                              ) : column.accessor === "file_url" ? (
-                                row.file_url ? (
+                              ) : column.accessor === "actions" ? (
+                                <div className="d-flex gap-2">
+                                  <button
+                                    className="btn btn-warning btn-sm d-inline-flex align-items-center gap-1"
+                                    onClick={() => handleEdit(row)}
+                                  >
+                                    <FaEdit />
+                                    Edit
+                                  </button>
+
+                                  <button
+                                    className="btn btn-danger btn-sm d-inline-flex align-items-center gap-1"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteRegistryModal"
+                                    onClick={() => handleDeleteClick(row)}
+                                  >
+                                    <FaTrash />
+                                    Delete
+                                  </button>
+                                </div>
+                              ) : [
+                                  "sec_form39_qb_url",
+                                  "undertaking_url",
+                                  "sec_form39_regs_ar_url",
+                                ].includes(column.accessor) ? (
+                                row[column.accessor] ? (
                                   <a
-                                    href={row.file_url}
+                                    href={row[column.accessor]}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    title={row.file_original_name}
                                   >
                                     <CiLink className="fs-3 text-primary" />
                                   </a>
@@ -437,10 +465,11 @@ const MyRegistry = () => {
                     ) : (
                       <tr>
                         <td
-                          colSpan={filteredData.length}
-                          className="text-center py-5"
+                          colSpan={currentRegistry.columns.length}
+                          className="text-center align-middle"
+                          style={{ height: "250px" }}
                         >
-                          No records found.
+                          <h5 className="text-muted mb-0">No records found.</h5>
                         </td>
                       </tr>
                     )}
@@ -491,36 +520,13 @@ const MyRegistry = () => {
             </div>
           </div>
         </div>
+        <DeleteRegistryModal
+          selectedItem={deleteConfig.item}
+          deleteAction={deleteConfig.action}
+          deleteLoading={deleteLoading}
+          title={deleteConfig.title}
+        />
       </section>
-
-      {/* Create User Modal */}
-      <div
-        className="modal fade"
-        id="createUserModal"
-        tabIndex="-1"
-        aria-labelledby="createUserModalLabel"
-        aria-hidden="true"
-      >
-        <div className="modal-dialog modal-dialog-centered modal-lg">
-          <div className="modal-content border-0 shadow">
-            <div className="modal-header">
-              <h5 className="modal-title fw-bold" id="createUserModalLabel">
-                Create User
-              </h5>
-
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-              ></button>
-            </div>
-
-            <div className="modal-body">
-              <CreateUser />
-            </div>
-          </div>
-        </div>
-      </div>
     </>
   );
 };

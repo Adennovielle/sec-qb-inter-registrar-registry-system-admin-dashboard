@@ -6,9 +6,11 @@ export const exportExcel = (columns, data, filename) => {
   const exportData = data.map((row) => {
     const obj = {};
 
-    columns.forEach((col) => {
-      obj[col.header] = row[col.accessor] ?? "-";
-    });
+    columns
+      .filter((col) => col.accessor !== "actions")
+      .forEach((col) => {
+        obj[col.header] = row[col.accessor] ?? "-";
+      });
 
     return obj;
   });
@@ -28,14 +30,20 @@ export const exportPDF = (columns, data, filename) => {
     unit: "mm",
     format: "a4",
   });
+
+  const exportColumns = columns.filter((col) => col.accessor !== "actions");
+
   autoTable(doc, {
-    head: [columns.map((col) => col.header)],
-    body: data.map((row) => columns.map((col) => row[col.accessor] ?? "-")),
+    head: [exportColumns.map((col) => col.header)],
+
+    body: data.map((row) =>
+      exportColumns.map((col) => row[col.accessor] ?? "-"),
+    ),
 
     // Header Style
     headStyles: {
-      fillColor: [1, 71, 47], // RGB
-      textColor: [255, 255, 255], // White
+      fillColor: [1, 71, 47],
+      textColor: [255, 255, 255],
       fontStyle: "bold",
       halign: "center",
       valign: "middle",
@@ -76,45 +84,79 @@ export const printTable = (tableId) => {
     return;
   }
 
+  // Clone table para hindi maapektuhan yung actual table sa UI
+  const clonedTable = table.cloneNode(true);
+
+  // Hanapin ang Actions column index
+  const headers = clonedTable.querySelectorAll("thead th");
+
+  let actionsIndex = -1;
+
+  headers.forEach((header, index) => {
+    if (header.textContent.trim() === "Actions") {
+      actionsIndex = index;
+    }
+  });
+
+  // Remove Actions column
+  if (actionsIndex !== -1) {
+    // Remove header
+    clonedTable.querySelectorAll("tr").forEach((row) => {
+      const cells = row.querySelectorAll("th, td");
+
+      if (cells[actionsIndex]) {
+        cells[actionsIndex].remove();
+      }
+    });
+  }
+
   const printWindow = window.open("", "_blank", "width=1000,height=700");
 
   printWindow.document.write(`
-    <html>
-      <head>
-        <title>Print Table</title>
+  <html>
+    <head>
+      <title>Print Table</title>
 
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        />
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      />
 
-        <style>
-          body {
-            padding: 20px;
-          }
+      <style>
+        @page {
+          size: landscape;
+          margin: 10mm;
+        }
 
-          table {
-            width: 100%;
-            border-collapse: collapse;
-          }
+        body {
+          padding: 20px;
+        }
 
-          th,
-          td {
-            border: 1px solid #ddd;
-            padding: 8px;
-          }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+            table-layout: auto;
+        }
 
-          thead {
-            background: #198754;
-            color: white;
-          }
-        </style>
-      </head>
+        th,
+        td {
+          border: 1px solid #ddd;
+          padding: 8px;
+          font-size: 12px;
+            white-space: nowrap;
+        }
 
-      <body>
-        ${table.outerHTML}
-      </body>
-    </html>
+        thead {
+          background: #198754;
+          color: white;
+        }
+      </style>
+    </head>
+
+    <body>
+      ${clonedTable.outerHTML}
+    </body>
+  </html>
   `);
 
   printWindow.document.close();

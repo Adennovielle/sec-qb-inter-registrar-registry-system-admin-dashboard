@@ -13,7 +13,6 @@ import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import MyRegistry from "./pages//MyRegistry/MyRegistry";
 import PageNotFound from "./pages/PageNotFound";
-import SubmissionPortal from "./pages/SubmissionPortal/SubmissionPortal";
 import Users from "./pages/Users/Users";
 import QbIdSearch from "./pages/QbIdSearch/QbIdSearch";
 import axios from "axios";
@@ -75,7 +74,6 @@ export default function App() {
                 element={<SubmissionDocsPortal />}
               />
               <Route path="my-registry" element={<MyRegistry />} />
-              <Route path="submission-portal" element={<SubmissionPortal />} />
               <Route path="users" element={<Users />} />
               {/* <Route path="qualified-buyers" element={<QualifiedBuyers />} /> */}
               {/* <Route path="registrars" element={<Registrars />} /> */}

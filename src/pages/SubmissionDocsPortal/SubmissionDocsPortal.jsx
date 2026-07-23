@@ -4,6 +4,7 @@ import * as Yup from "yup";
 import { FaPlus, FaMinus } from "react-icons/fa";
 import axios from "axios";
 import "./SubmissionDocsPortal.css";
+import Swal from "sweetalert2";
 
 const validationSchema = Yup.object({
   qbType: Yup.string().required("Please select Qualified Buyer Type."),
@@ -53,9 +54,7 @@ const validationSchema = Yup.object({
   letterOfUndertaking: Yup.mixed().required(
     "Letter of Undertaking is required.",
   ),
-  secForm39RegsAr: Yup.mixed().required(
-    "SEC Form 39-Registrar-AR is required.",
-  ),
+  secForm39RegsAr: Yup.mixed().nullable(),
 });
 
 const SubmissionDocsPortal = () => {
@@ -65,6 +64,28 @@ const SubmissionDocsPortal = () => {
         initialValues={{
           qbType: "",
 
+          qualifiedBuyers: [
+            {
+              firstName: "",
+              middleName: "",
+              lastName: "",
+            },
+          ],
+
+          institutionName: "",
+
+          corControlNumber: "",
+
+          dateOfRegistration: "",
+
+          validityDate: "",
+
+          evaluatorName: "",
+
+          evaluatorDesignation: "",
+          evaluatorSecLicense: "",
+          evaluationDate: "",
+
           qbid: {
             registrarCode: "",
             buyerTypeCode: "",
@@ -72,89 +93,102 @@ const SubmissionDocsPortal = () => {
             serialCode: "",
           },
 
-          dateOfRegistration: "",
-          validityDate: "",
-          corControlNumber: "",
-          evaluatorName: "",
-          evaluatorDesignation: "",
-          evaluatorSecLicense: "",
-          evaluationDate: "",
-
-          qualifiedBuyers: [
-            {
-              firstName: "",
-              middleName: "",
-              lastName: "",
-              suffix: "",
-            },
-          ],
-
-          institutionName: "",
-
           secForm39Qb: null,
           letterOfUndertaking: null,
           secForm39RegsAr: null,
         }}
         validationSchema={validationSchema}
-        onSubmit={async (values) => {
-          console.log("========== SUBMISSION DATA ==========");
+        onSubmit={async (values, { resetForm, setSubmitting }) => {
+          try {
+            const formData = new FormData();
 
-          console.log("Qualified Buyer Type:", values.qbType);
+            formData.append("qbType", values.qbType);
 
-          if (values.qbType === "individual") {
-            console.log("Qualified Buyers:");
+            formData.append(
+              "qualifiedBuyers",
+              JSON.stringify(values.qualifiedBuyers),
+            );
 
-            values.qualifiedBuyers.forEach((buyer, index) => {
-              console.log(`Buyer #${index + 1}`, {
-                firstName: buyer.firstName,
-                middleName: buyer.middleName,
-                lastName: buyer.lastName,
-                suffix: buyer.suffix,
-              });
+            formData.append("institutionName", values.institutionName);
+
+            formData.append("corControlNumber", values.corControlNumber);
+
+            formData.append("dateOfRegistration", values.dateOfRegistration);
+
+            formData.append("validityDate", values.validityDate);
+
+            formData.append("evaluatorName", values.evaluatorName);
+
+            formData.append(
+              "evaluatorDesignation",
+              values.evaluatorDesignation,
+            );
+            formData.append("evaluatorSecLicense", values.evaluatorSecLicense);
+            formData.append("evaluationDate", values.evaluationDate);
+
+            formData.append("qbid.registrarCode", values.qbid.registrarCode);
+
+            formData.append("qbid.buyerTypeCode", values.qbid.buyerTypeCode);
+
+            formData.append("qbid.yearCode", values.qbid.yearCode);
+
+            formData.append("qbid.serialCode", values.qbid.serialCode);
+
+            formData.append("secForm39Qb", values.secForm39Qb);
+
+            formData.append("letterOfUndertaking", values.letterOfUndertaking);
+
+            if (values.secForm39RegsAr) {
+              formData.append("secForm39RegsAr", values.secForm39RegsAr);
+            }
+
+            Swal.fire({
+              title: "Uploading...",
+              text: "Please wait while your documents are being submitted.",
+              allowOutsideClick: false,
+              allowEscapeKey: false,
+              didOpen: () => {
+                Swal.showLoading();
+              },
             });
+            console.log(values);
+
+            for (const pair of formData.entries()) {
+              console.log(pair[0], pair[1]);
+            }
+            const response = await axios.post(
+              "http://localhost:8080/submissions",
+              formData,
+              {
+                headers: {
+                  accessToken: localStorage.getItem("accessToken"),
+                },
+              },
+            );
+
+            Swal.fire({
+              icon: "success",
+              title: "Submission Successful!",
+              text:
+                response.data.message || "Documents submitted successfully.",
+              confirmButtonColor: "#198754",
+            });
+
+            resetForm();
+          } catch (err) {
+            Swal.fire({
+              icon: "error",
+              title: "Submission Failed",
+              text:
+                err.response?.data?.message ||
+                "Something went wrong. Please try again.",
+              confirmButtonColor: "#dc3545",
+            });
+
+            console.error(err);
+          } finally {
+            setSubmitting(false);
           }
-
-          if (values.qbType === "institutional") {
-            console.log("Institution Name:", values.institutionName);
-          }
-          console.log("QB Identification Number:", values.qbid);
-
-          console.log("QB Status Information:", {
-            corControlNumber: values.corControlNumber,
-            dateOfRegistration: values.dateOfRegistration,
-            validityDate: values.validityDate,
-          });
-
-          console.log("Registrar Evaluator Details:", {
-            evaluatorName: values.evaluatorName,
-            evaluatorDesignation: values.evaluatorDesignation,
-            evaluatorSecLicense: values.evaluatorSecLicense,
-            evaluationDate: values.evaluationDate,
-          });
-          console.log("Supporting Documents:");
-
-          console.log("SEC Form 39 QB:", {
-            name: values.secForm39Qb?.name,
-            type: values.secForm39Qb?.type,
-            size: values.secForm39Qb?.size,
-          });
-
-          console.log("Letter of Undertaking:", {
-            name: values.letterOfUndertaking?.name,
-            type: values.letterOfUndertaking?.type,
-            size: values.letterOfUndertaking?.size,
-          });
-
-          console.log("SEC Form 39 AR:", {
-            name: values.secForm39RegsAr?.name,
-            type: values.secForm39RegsAr?.type,
-            size: values.secForm39RegsAr?.size,
-          });
-
-          console.log("========== FULL FORM VALUES ==========");
-          console.log(values);
-
-          console.log("======================================");
         }}
       >
         {({
@@ -164,6 +198,7 @@ const SubmissionDocsPortal = () => {
           handleChange,
           handleBlur,
           setFieldValue,
+          isSubmitting,
         }) => (
           <Form>
             <div className="card shadow border-0">
@@ -219,7 +254,10 @@ const SubmissionDocsPortal = () => {
                             name="qbType"
                             value="individual"
                             checked={values.qbType === "individual"}
-                            onChange={handleChange}
+                            onChange={() => {
+                              setFieldValue("qbType", "individual");
+                              setFieldValue("qbid.buyerTypeCode", "IND");
+                            }}
                           />
 
                           <div className="text-center">
@@ -250,7 +288,10 @@ const SubmissionDocsPortal = () => {
                             name="qbType"
                             value="institutional"
                             checked={values.qbType === "institutional"}
-                            onChange={handleChange}
+                            onChange={() => {
+                              setFieldValue("qbType", "institutional");
+                              setFieldValue("qbid.buyerTypeCode", "INS");
+                            }}
                           />
 
                           <div className="text-center">
@@ -424,25 +465,29 @@ const SubmissionDocsPortal = () => {
                           Institution Information
                         </h5>
 
-                        <div className="mb-4">
-                          <label className="form-label fw-semibold ">
-                            Institution Name
-                          </label>
+                        <div className="mb-4 row">
+                          <div>
+                            <label className="form-label fw-semibold ">
+                              Institution Name
+                            </label>
+                          </div>
 
-                          <input
-                            type="text"
-                            className={`form-control ${
-                              touched.institutionName && errors.institutionName
-                                ? "is-invalid"
-                                : ""
-                            }`}
-                            name="institutionName"
-                            value={values.institutionName}
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                            placeholder="Enter Institution Name"
-                          />
-
+                          <div className="col-lg-6">
+                            <input
+                              type="text"
+                              className={`form-control ${
+                                touched.institutionName &&
+                                errors.institutionName
+                                  ? "is-invalid"
+                                  : ""
+                              }`}
+                              name="institutionName"
+                              value={values.institutionName}
+                              onChange={handleChange}
+                              onBlur={handleBlur}
+                              placeholder="Enter Institution Name"
+                            />
+                          </div>
                           {touched.institutionName &&
                             errors.institutionName && (
                               <div className="invalid-feedback">
@@ -511,15 +556,8 @@ const SubmissionDocsPortal = () => {
                               className="form-control text-center"
                               placeholder="IND"
                               name="qbid.buyerTypeCode"
-                              value={
-                                values.qbType === "individual" ? "IND" : "INS"
-                              }
-                              onChange={(e) => {
-                                setFieldValue(
-                                  "qbid.buyerTypeCode",
-                                  e.target.value.toUpperCase(),
-                                );
-                              }}
+                              value={values.qbid.buyerTypeCode}
+                              disabled
                             />
 
                             <small className="text-muted">IND or INS</small>
@@ -996,8 +1034,22 @@ const SubmissionDocsPortal = () => {
                         Reset
                       </button>
 
-                      <button type="submit" className="btn btn-success px-4">
-                        Submit Documents
+                      <button
+                        type="submit"
+                        className="btn btn-success px-4"
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <span
+                              className="spinner-border spinner-border-sm me-2"
+                              role="status"
+                            ></span>
+                            Submitting...
+                          </>
+                        ) : (
+                          "Submit Documents"
+                        )}
                       </button>
                     </div>
                   </>
