@@ -1,6 +1,7 @@
 import React from "react";
 import Swal from "sweetalert2";
 import { formatQBName } from "../../utils/fomatQbName";
+import { dateFormatter } from "../../utils/dateFormatter";
 
 const DeleteRegistryModal = ({
   selectedItem,
@@ -51,17 +52,64 @@ const DeleteRegistryModal = ({
           <div className="modal-body">
             <p>Are you sure you want to delete this {title}?</p>
 
-            <div className="alert alert-warning">
-              {selectedItem?.qbid && (
+            <div className="alert alert-warning mb-0">
+              {title === "Qualified Buyer" && (
                 <>
-                  <strong>QBID:</strong> {selectedItem.qbid}
+                  <strong>QBID:</strong> {selectedItem?.qbid}
                   <br />
+                  <strong>Name:</strong>{" "}
+                  {selectedItem?.qb_name
+                    ? formatQBName(selectedItem.qb_name)
+                    : "-"}
                 </>
               )}
 
-              {selectedItem?.qb_name && (
+              {title === "Submission" && (
                 <>
-                  <strong>Name:</strong> {formatQBName(selectedItem.qb_name)}
+                  <strong>Reference No.:</strong>{" "}
+                  {selectedItem?.submission_reference_no}
+                  <br />
+                  {selectedItem?.qbid && (
+                    <>
+                      <strong>QBID:</strong> {selectedItem.qbid}
+                      <br />
+                    </>
+                  )}
+                  {selectedItem?.qb_name && (
+                    <>
+                      <strong>QB Name:</strong>{" "}
+                      {selectedItem?.qb_name
+                        ? formatQBName(selectedItem.qb_name)
+                        : "-"}
+                      <br />
+                    </>
+                  )}
+                  <strong>Submitted By:</strong> {selectedItem?.submitted_by}
+                  <br />
+                  <strong>Registrar:</strong> {selectedItem?.registrar_name}
+                  <br />
+                  <strong>Submitted At:</strong>{" "}
+                  {selectedItem?.submitted_at
+                    ? dateFormatter(selectedItem.submitted_at)
+                    : "-"}
+                </>
+              )}
+
+              {title === "Issuing Registry Record" && (
+                <>
+                  <strong>QBID:</strong> {selectedItem?.qbid}
+                  <br />
+                  <strong>Certificate No.:</strong>{" "}
+                  {selectedItem?.certificate_no}
+                </>
+              )}
+
+              {title === "Relying Registry Record" && (
+                <>
+                  <strong>QBID:</strong> {selectedItem?.qbid}
+                  <br />
+                  <strong>Certificate No.:</strong>{" "}
+                  {selectedItem?.certificate_no}
                 </>
               )}
             </div>

@@ -16,6 +16,7 @@ import {
   getRelyingRegistry,
   getIssuingRegistry,
 } from "../../services/myRegistryService";
+import EditRegistryModal from "../Modals/EditRegistryModal";
 
 const MyRegistry = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -25,9 +26,13 @@ const MyRegistry = () => {
   const [qualifiedBuyersData, setQualifiedBuyersData] = useState([]);
   const [relyingRegistryData, setRelyingRegistryData] = useState([]);
   const [issuingRegistryData, setIssuingRegistryData] = useState([]);
-  const [selectedQB, setSelectedQB] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const { authState } = useContext(AuthContext);
+  const [editConfig, setEditConfig] = useState({
+    item: null,
+    title: "",
+    type: "",
+  });
   const [deleteConfig, setDeleteConfig] = useState({
     item: null,
     action: null,
@@ -62,12 +67,57 @@ const MyRegistry = () => {
     }
   };
 
-  const handleEdit = (row) => {
-    console.log("Edit:", row);
-  };
+  const handleEditClick = (row) => {
+    switch (activeTab) {
+      case "Central Registry":
+        setEditConfig({
+          item: row,
+          title: "Qualified Buyer",
+          type: "qualifiedBuyer",
+        });
+        break;
 
+      case "Issuing Registrar Tab":
+        setEditConfig({
+          item: row,
+          title: "Issuing Registry Record",
+          type: "issuingRegistry",
+        });
+        break;
+
+      case "Relying Registrar Tab":
+        setEditConfig({
+          item: row,
+          title: "Relying Registry Record",
+          type: "relyingRegistry",
+        });
+        break;
+
+      case "Submissions":
+        setEditConfig({
+          item: row,
+          title: "Submission",
+          type: "submission",
+        });
+        break;
+
+      default:
+        break;
+    }
+  };
   const closeDeleteModal = () => {
     const modalElement = document.getElementById("deleteRegistryModal");
+
+    if (modalElement) {
+      const modal = Modal.getInstance(modalElement);
+      modal?.hide();
+    }
+    document.querySelectorAll(".modal-backdrop").forEach((el) => el.remove());
+    document.body.classList.remove("modal-open");
+    document.body.style.removeProperty("padding-right");
+  };
+  const closeEditModal = () => {
+    const modalElement = document.getElementById("editRegistryModal");
 
     if (modalElement) {
       const modal = Modal.getInstance(modalElement);
@@ -77,10 +127,7 @@ const MyRegistry = () => {
     document.querySelectorAll(".modal-backdrop").forEach((el) => el.remove());
     document.body.classList.remove("modal-open");
     document.body.style.removeProperty("padding-right");
-
-    setSelectedQB(null);
   };
-
   const deleteQB = async (qbid) => {
     try {
       setDeleteLoading(true);
@@ -152,6 +199,7 @@ const MyRegistry = () => {
       await fetchRegistryData();
     } catch (err) {
       console.error(err);
+      throw err; // <-- idagdag ito
     } finally {
       setDeleteLoading(false);
     }
@@ -296,6 +344,14 @@ const MyRegistry = () => {
           accessor: "submitted_by",
         },
         {
+          header: "QBID",
+          accessor: "qbid",
+        },
+        {
+          header: "QB Name",
+          accessor: "qb_name",
+        },
+        {
           header: "Reference No.",
           accessor: "submission_reference_no",
         },
@@ -414,7 +470,9 @@ const MyRegistry = () => {
                                       ? "bg-success"
                                       : row.qb_status === "EXPIRED"
                                         ? "bg-danger"
-                                        : "bg-warning text-dark"
+                                        : row.qb_status === "SUSPENDED"
+                                          ? "bg-warning"
+                                          : "bg-dark"
                                   }`}
                                 >
                                   {row.qb_status}
@@ -423,7 +481,9 @@ const MyRegistry = () => {
                                 <div className="d-flex gap-2">
                                   <button
                                     className="btn btn-warning btn-sm d-inline-flex align-items-center gap-1"
-                                    onClick={() => handleEdit(row)}
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editRegistryModal"
+                                    onClick={() => handleEditClick(row)}
                                   >
                                     <FaEdit />
                                     Edit
@@ -520,6 +580,14 @@ const MyRegistry = () => {
             </div>
           </div>
         </div>
+
+        <EditRegistryModal
+          selectedItem={editConfig.item}
+          title={editConfig.title}
+          type={editConfig.type}
+          onSuccess={fetchRegistryData}
+          closeModal={closeEditModal}
+        />
         <DeleteRegistryModal
           selectedItem={deleteConfig.item}
           deleteAction={deleteConfig.action}

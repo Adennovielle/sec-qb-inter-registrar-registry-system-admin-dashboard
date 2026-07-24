@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./QbIdSearch.css";
 import axios from "axios";
+import { formatQBName } from "../../utils/fomatQBName";
 import { exportPDF, exportExcel, printTable } from "../../utils/exportUtils";
 const QbIdSearch = () => {
   const [searchValue, setSearchValue] = useState("");
@@ -124,36 +125,39 @@ const QbIdSearch = () => {
               Securities and Exchange Commission – Qualified Buyer
               Inter-Registrar Registry System
             </small>
-            <input
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              type="text"
-              className="form-control form-control-lg mb-3"
-              placeholder="Enter Qualified Buyer Identification Number (QBID)"
-            />
-            <button
-              className="btn btn-success px-4"
-              onClick={searchQbId}
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <span
-                    className="spinner-border spinner-border-sm me-2"
-                    role="status"
-                  ></span>
-                  Searching...
-                </>
-              ) : (
-                "Search"
-              )}
-            </button>
-            <button
-              className="btn btn-light border px-4 ms-2"
-              onClick={handleClear}
-            >
-              Clear
-            </button>
+            <form action="">
+              <input
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                type="text"
+                className="form-control form-control-lg mb-3"
+                placeholder="Enter Qualified Buyer Identification Number (QBID)"
+              />
+              <button
+                type="submit"
+                className="btn btn-success px-4"
+                onClick={searchQbId}
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <span
+                      className="spinner-border spinner-border-sm me-2"
+                      role="status"
+                    ></span>
+                    Searching...
+                  </>
+                ) : (
+                  "Search"
+                )}
+              </button>
+              <button
+                className="btn btn-light border px-4 ms-2"
+                onClick={handleClear}
+              >
+                Clear
+              </button>
+            </form>
             <div className="mt-3">
               {searchError && (
                 <div className="alert alert-danger">{searchError}</div>
@@ -180,7 +184,9 @@ const QbIdSearch = () => {
 
                         <tr className="border-bottom">
                           <th>QB Name</th>
-                          <td className="text-end">{searchResult.qb_name}</td>
+                          <td className="text-end">
+                            {formatQBName(searchResult.qb_name)}
+                          </td>
                         </tr>
 
                         <tr className="border-bottom">

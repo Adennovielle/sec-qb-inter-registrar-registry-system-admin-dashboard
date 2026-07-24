@@ -5,6 +5,7 @@ import { FaPlus, FaMinus } from "react-icons/fa";
 import axios from "axios";
 import "./SubmissionDocsPortal.css";
 import Swal from "sweetalert2";
+import ScrollToError from "../../components/inputErrorAutoFocus";
 
 const validationSchema = Yup.object({
   qbType: Yup.string().required("Please select Qualified Buyer Type."),
@@ -63,7 +64,6 @@ const SubmissionDocsPortal = () => {
       <Formik
         initialValues={{
           qbType: "",
-
           qualifiedBuyers: [
             {
               firstName: "",
@@ -71,28 +71,20 @@ const SubmissionDocsPortal = () => {
               lastName: "",
             },
           ],
-
           institutionName: "",
-
           corControlNumber: "",
-
           dateOfRegistration: "",
-
           validityDate: "",
-
           evaluatorName: "",
-
           evaluatorDesignation: "",
           evaluatorSecLicense: "",
           evaluationDate: "",
-
           qbid: {
             registrarCode: "",
             buyerTypeCode: "",
             yearCode: "",
             serialCode: "",
           },
-
           secForm39Qb: null,
           letterOfUndertaking: null,
           secForm39RegsAr: null,
@@ -101,43 +93,28 @@ const SubmissionDocsPortal = () => {
         onSubmit={async (values, { resetForm, setSubmitting }) => {
           try {
             const formData = new FormData();
-
             formData.append("qbType", values.qbType);
-
             formData.append(
               "qualifiedBuyers",
               JSON.stringify(values.qualifiedBuyers),
             );
-
             formData.append("institutionName", values.institutionName);
-
             formData.append("corControlNumber", values.corControlNumber);
-
             formData.append("dateOfRegistration", values.dateOfRegistration);
-
             formData.append("validityDate", values.validityDate);
-
             formData.append("evaluatorName", values.evaluatorName);
-
             formData.append(
               "evaluatorDesignation",
               values.evaluatorDesignation,
             );
             formData.append("evaluatorSecLicense", values.evaluatorSecLicense);
             formData.append("evaluationDate", values.evaluationDate);
-
             formData.append("qbid.registrarCode", values.qbid.registrarCode);
-
             formData.append("qbid.buyerTypeCode", values.qbid.buyerTypeCode);
-
             formData.append("qbid.yearCode", values.qbid.yearCode);
-
             formData.append("qbid.serialCode", values.qbid.serialCode);
-
             formData.append("secForm39Qb", values.secForm39Qb);
-
             formData.append("letterOfUndertaking", values.letterOfUndertaking);
-
             if (values.secForm39RegsAr) {
               formData.append("secForm39RegsAr", values.secForm39RegsAr);
             }
@@ -201,6 +178,7 @@ const SubmissionDocsPortal = () => {
           isSubmitting,
         }) => (
           <Form>
+            <ScrollToError />
             <div className="card shadow border-0">
               {/* Header */}
               <div className="card-header bg-success text-white py-4">
